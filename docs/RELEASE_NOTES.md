@@ -1,4 +1,4 @@
-# ChatExporter 0.0.1rc3
+# ChatExporter 0.0.1
 
 Lokale Archivierung von ChatGPT, OpenCode,
 Codex CLI und Claude Code; inkrementelle Aktualisierung, referenzierte
