@@ -7,7 +7,7 @@ Er aktualisiert lokale Rohdaten inkrementell, lädt referenzierte ChatGPT-Dateie
 und erzeugt Markdown- und JSON-Exporte. Bedienung über Menü oder Befehle, mit
 Einrichtung und Zeitplanung über die Windows-Aufgabenplanung.
 
-Aktueller Quellstand: **0.0.1rc3**. Das erste stabile Release **0.0.1** wird vorbereitet.
+Aktueller Quellstand: **0.0.1**. Veröffentlichung wird über den Release-Ablauf vorbereitet.
 Windows 10/11; das installierte Programm benötigt kein Python. Das Setup arbeitet
 pro Benutzer und erstellt Desktop- und Startmenü-Verknüpfungen mit dem App-Icon.
 

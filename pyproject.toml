@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 # Gleicher Distributionsname wie pre-5: eine Installation von pre-6 ersetzt
 # pre-5 in derselben venv sauber (kein doppeltes Paket `chatexporter`).
 name = "chatexporter-gen4"
-version = "0.0.1rc3"
+version = "0.0.1"
 description = "Raw Session Updater über mehrere Quellen (ChatGPT, OpenCode, Codex, Claude Code)"
 readme = "README.md"
 license = "MIT"
