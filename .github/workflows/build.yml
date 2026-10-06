@@ -1,0 +1,45 @@
+name: Windows installer
+on:
+  workflow_dispatch:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  build:
+    name: Build and verify installer
+    runs-on: windows-2025
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12.10'
+      - name: Install locked dependencies and package
+        run: |
+          python -m pip install pip==26.2.1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m pip install --require-hashes -r requirements-ci.lock
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m pip install --no-deps --no-build-isolation .
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python packaging/ci/check.py
+          exit $LASTEXITCODE
+      - name: Install verified Inno Setup
+        run: ./packaging/ci/install-inno.ps1
+      - name: Build and smoke test
+        run: python packaging/build.py --out _build
+      - name: Verify release bundle
+        env:
+          SOURCE_COMMIT: ${{ github.sha }}
+        run: python packaging/ci/artifacts.py --build _build --out dist/release --commit "$env:SOURCE_COMMIT"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: windows-release
+          path: dist/release/
+          if-no-files-found: error
+          retention-days: 30

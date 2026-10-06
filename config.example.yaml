@@ -1,0 +1,361 @@
+## =============================================================================
+## ChatExporter – Konfiguration (config.yaml)
+## =============================================================================
+## Vollstaendige Vorlage: JEDE Einstellung steht als eigene auskommentierte Zeile.
+## Zum Setzen das '# ' vor der Zeile (und ggf. vor den Abschnittszeilen darueber)
+## entfernen oder `chatexporter config set SCHLUESSEL WERT` verwenden.
+## Zeilen mit Standardwert zeigen den echten Standard; Zeilen mit dem Hinweis
+## BEISPIEL zeigen ausgedachte Werte, die so nicht stimmen.
+## Relative Pfade gelten relativ zu dieser Datei. Secrets nur in die .env.
+## Vorrang: Standard < config.yaml < .env < Umgebung < --set SCHLUESSEL=WERT.
+
+## Entwicklungsmodus: wenige Listing-Seiten, simuliertes Rate-Limit, schnelle Fortsetzung
+## (Werte im Abschnitt dev; Gesamtablauf schnell und sparsam testen; nie im Alltag).
+## (Umgebung: CHATEXPORTER_DEV_MODE, CHATEXPORTER__DEV_MODE)
+# dev_mode: false
+
+# dev:
+##  Entwicklungsmodus (wirkt nur mit dev_mode: true)
+##  Nur im Entwicklungsmodus: hoechstens so viele Listing-Seiten je Bereich (aktiv/archiviert);
+##  Eintraege je Seite: providers.chatgpt.sync.listing_limit.
+##  (Umgebung: CHATEXPORTER_DEV_LISTING_MAX_PAGES, CHATEXPORTER__DEV__LISTING_MAX_PAGES)
+#   listing_max_pages: 3
+##  Nur im Entwicklungsmodus: simuliertes Rate-Limit (HTTP 429) nach so vielen Konversationsabrufen
+##  (0 = kein simuliertes Rate-Limit).
+##  (Umgebung: CHATEXPORTER_DEV_CONVERSATION_FETCHES, CHATEXPORTER__DEV__CONVERSATION_FETCHES)
+#   conversation_fetches: 5
+##  Nur im Entwicklungsmodus: geschaetztes Wiederauffuellen des Limits (Minuten).
+##  (Umgebung: CHATEXPORTER_DEV_REFILL_MINUTES, CHATEXPORTER__DEV__REFILL_MINUTES)
+#   refill_minutes: 5
+##  Nur im Entwicklungsmodus: Obergrenze einer konfigurierten Wartezeit beim Rate-Limit (Minuten).
+##  (Umgebung: CHATEXPORTER_DEV_RATE_LIMIT_WAIT_MINUTES, CHATEXPORTER__DEV__RATE_LIMIT_WAIT_MINUTES)
+#   rate_limit_wait_minutes: 1
+##  Nur im Entwicklungsmodus: die Fortsetzung startet so viele Minuten nach einem Rate-Limit-Stopp.
+##  (Umgebung: CHATEXPORTER_DEV_CONTINUATION_DELAY_MINUTES, CHATEXPORTER__DEV__CONTINUATION_DELAY_MINUTES)
+#   continuation_delay_minutes: 5
+
+# bootstrap:
+##  Umgebung
+##  Python-venv der Entwicklung (nur Anzeige in der Diagnose; installiert ohne Bedeutung).
+##  (Umgebung: CHATEXPORTER_VENV_PATH, CHATEXPORTER__BOOTSTRAP__VENV_PATH)
+#   venv_path: .venv
+##  Datei mit Secrets/Overrides (KEY=WERT), relativ zu dieser Datei.
+##  (Umgebung: CHATEXPORTER_ENV_FILE, CHATEXPORTER__BOOTSTRAP__ENV_FILE)
+#   env_file: .env
+
+# storage:
+##  Storage (Datenbestand) und Ablage
+##  Storage (Datenbestand), mit dem gearbeitet wird; relativ zum Ordner der globalen config.yaml.
+##  Einmalig auch per --storage PFAD. Darunter: .storage/ (Verwaltung), raw_storage/, exports/.
+##  (Umgebung: CHATEXPORTER_STORAGE, CHATEXPORTER__STORAGE__ROOT)
+#   root: storages/default
+##  Aelterer Name fuer storage.root (gilt, wenn storage.root nicht gesetzt ist).
+##  (BEISPIEL – kein Standardwert)
+##  (Umgebung: CHATEXPORTER_DATA_ROOT, CHATEXPORTER__STORAGE__DATA_ROOT)
+#   data_root: D:/BEISPIEL/chat_daten
+##  Abweichende Wurzel der Quelldaten (Standard: <storage>/raw_storage; nicht empfohlen).
+##  (BEISPIEL – kein Standardwert)
+##  (Umgebung: CHATEXPORTER_RAW_ROOT, CHATEXPORTER__STORAGE__RAW_ROOT)
+#   raw_root: D:/BEISPIEL/chat_daten/raw_storage
+##  Abweichende Verwaltungsablage (Standard: <storage>/.storage; nicht empfohlen).
+##  (BEISPIEL – kein Standardwert)
+##  (Umgebung: CHATEXPORTER_RUNTIME_ROOT, CHATEXPORTER__STORAGE__RUNTIME_ROOT)
+#   runtime_root: D:/BEISPIEL/chat_daten/.storage
+##  Abweichende Statusablage (Standard: <storage>/.storage/status_registry; nicht empfohlen).
+##  (BEISPIEL – kein Standardwert)
+##  (Umgebung: CHATEXPORTER_STATUS_ROOT, CHATEXPORTER__STORAGE__STATUS_ROOT)
+#   status_root: D:/BEISPIEL/chat_daten/.storage/status_registry
+
+# raw_session_updater:
+##  Raw Session Updater: Daten holen und im Raw Storage ablegen
+##  Aktive Quellen und ihre Reihenfolge (update, index, check, cleanup, status).
+##  (Umgebung: CHATEXPORTER_SOURCES, CHATEXPORTER__RAW_SESSION_UPDATER__SOURCES)
+#   sources: [chatgpt, opencode, codex, claude]
+
+# logging:
+##  Befehlsprotokoll
+##  Jeden Befehl als JSON-Zeile protokollieren.
+##  (Umgebung: CHATEXPORTER_LOG_ENABLED, CHATEXPORTER__LOGGING__ENABLED)
+#   enabled: true
+##  Ordner des Befehlsprotokolls (Standard: <storage>/.storage/logs).
+##  (BEISPIEL – kein Standardwert)
+##  (Umgebung: CHATEXPORTER_LOG_DIR, CHATEXPORTER__LOGGING__DIR)
+#   dir: D:/BEISPIEL/chat_logs
+##  Zeitraum je Logdatei (z. B. 1h, 24h, 7d).
+##  (Umgebung: CHATEXPORTER_LOG_ROTATION, CHATEXPORTER__LOGGING__ROTATION)
+#   rotation: 24h
+##  Aeltere Logdateien werden entfernt (0 = nie).
+##  (Umgebung: CHATEXPORTER_LOG_RETENTION, CHATEXPORTER__LOGGING__RETENTION)
+#   retention: 30d
+
+# exporter:
+##  Exporter: Markdown/JSON aus dem Raw Storage
+##  Ziel der Exporte (Standard: <storage>/exports).
+##  (BEISPIEL – kein Standardwert)
+##  (Umgebung: CHATEXPORTER_EXPORT_ROOT, CHATEXPORTER__EXPORTER__ROOT)
+#   root: D:/BEISPIEL/chat_exporte
+##  Ausgabeformate (markdown, json).
+##  (Umgebung: CHATEXPORTER_EXPORT_FORMATS, CHATEXPORTER__EXPORTER__FORMATS)
+#   formats: [markdown, json]
+##  Quellen, die exportiert werden.
+##  (Umgebung: CHATEXPORTER_EXPORT_SOURCES, CHATEXPORTER__EXPORTER__SOURCES)
+#   sources: [chatgpt, opencode, codex, claude]
+
+# task_scheduler:
+##  Zeitplanung (Windows-Aufgabenplanung)
+##  Ordner in der Windows-Aufgabenplanung.
+##  (Umgebung: CHATEXPORTER_TASK_FOLDER, CHATEXPORTER__TASK_SCHEDULER__FOLDER)
+#   folder: \ChatExporter
+##  Eigentuemer-Kennung der Aufgaben.
+##  (Umgebung: CHATEXPORTER_TASK_OWNER, CHATEXPORTER__TASK_SCHEDULER__OWNER)
+#   owner: chatexporter
+##  Lokaler State der Aufgaben (Standard: <storage>/.storage/tasks_sched.json).
+##  (BEISPIEL – kein Standardwert)
+##  (Umgebung: CHATEXPORTER_TASK_STATE_FILE, CHATEXPORTER__TASK_SCHEDULER__STATE_FILE)
+#   state_file: D:/BEISPIEL/chat_daten/.storage/tasks_sched.json
+##  Globaler State (Standard: %LOCALAPPDATA%/PyTaskManager/tasks_sched.json).
+##  (BEISPIEL – kein Standardwert)
+##  (Umgebung: CHATEXPORTER_TASK_GLOBAL_STATE, CHATEXPORTER__TASK_SCHEDULER__GLOBAL_STATE_FILE)
+#   global_state_file: C:/BEISPIEL/AppData/Local/PyTaskManager/tasks_sched.json
+##  Programm, das geplante Befehle ausfuehrt (Standard: venv-Python bzw. installiertes Programm).
+##  (BEISPIEL – kein Standardwert)
+##  (Umgebung: CHATEXPORTER_TASK_PYTHON, CHATEXPORTER__TASK_SCHEDULER__PYTHON)
+#   python: C:/BEISPIEL/venv/Scripts/python.exe
+##  Ort von scheduler_manager.py (Standard: im Programm enthalten).
+##  (BEISPIEL – kein Standardwert)
+##  (Umgebung: CHATEXPORTER_TASK_MANAGER_SCRIPT, CHATEXPORTER__TASK_SCHEDULER__MANAGER_SCRIPT)
+#   manager_script: C:/BEISPIEL/tools/task_scheduler/scheduler_manager.py
+#   defaults:
+##    Standardwerte neuer Aufgaben
+##    Befehl neuer Aufgaben.
+##    (Umgebung: CHATEXPORTER_TASK_COMMAND, CHATEXPORTER__TASK_SCHEDULER__DEFAULTS__COMMAND)
+#     command: update --non-interactive
+##    Zeitplan neuer Aufgaben (type: daily|weekly|once|logon|startup).
+##    (Umgebung: CHATEXPORTER__TASK_SCHEDULER__DEFAULTS__TRIGGER)
+#     trigger: {type: daily, at: '03:00', every: 1}
+##    Beschreibung neuer Aufgaben (leer = automatisch).
+##    (Umgebung: CHATEXPORTER__TASK_SCHEDULER__DEFAULTS__DESCRIPTION)
+#     description: ''
+##    Zeitlimit je Lauf in Minuten.
+##    (Umgebung: CHATEXPORTER__TASK_SCHEDULER__DEFAULTS__MAX_RUNTIME_MINUTES)
+#     max_runtime_minutes: 360
+##    Verpassten Lauf nachholen.
+##    (Umgebung: CHATEXPORTER__TASK_SCHEDULER__DEFAULTS__START_WHEN_AVAILABLE)
+#     start_when_available: true
+##    Auch im Akkubetrieb starten.
+##    (Umgebung: CHATEXPORTER__TASK_SCHEDULER__DEFAULTS__ALLOW_ON_BATTERY)
+#     allow_on_battery: true
+##    Rechner dafuer wecken.
+##    (Umgebung: CHATEXPORTER__TASK_SCHEDULER__DEFAULTS__WAKE_TO_RUN)
+#     wake_to_run: false
+##    Wenn der vorige Lauf noch laeuft.
+##    (erlaubt: parallel, queue, ignore_new, stop_existing)
+##    (Umgebung: CHATEXPORTER__TASK_SCHEDULER__DEFAULTS__MULTIPLE_INSTANCES)
+#     multiple_instances: ignore_new
+##    Aufgabe in der Aufgabenplanung verbergen.
+##    (Umgebung: CHATEXPORTER__TASK_SCHEDULER__DEFAULTS__HIDDEN)
+#     hidden: false
+#   continuation:
+##    Automatische Fortsetzung nach einem Rate-Limit-Stopp
+##    Nach einem Lauf, der am Rate-Limit endete, automatisch eine Fortsetzung planen.
+##    (Umgebung: CHATEXPORTER__TASK_SCHEDULER__CONTINUATION__ENABLED)
+#     enabled: true
+##    Sicherheitsabstand nach dem geschaetzten Wiederauffuellen des Limits (Minuten).
+##    (Umgebung: CHATEXPORTER__TASK_SCHEDULER__CONTINUATION__MARGIN_MINUTES)
+#     margin_minutes: 10
+##    Befehl der Fortsetzung (vollstaendiges Listing, damit auch noch nie geladene Chats erfasst werden).
+##    (Umgebung: CHATEXPORTER__TASK_SCHEDULER__CONTINUATION__COMMAND)
+#     command: update --source chatgpt --listing-mode full --non-interactive
+
+# providers:
+##  Einstellungen je Quelle
+#   chatgpt:
+#     browser:
+##      Browser-Profil MIT ChatGPT-Anmeldung. Leer = automatische Suche (Profilkopie eines
+##      Edge-/Chrome-Profils, eigenes Profil, Chrome for Testing); der gefundene Pfad wird danach
+##      hier eingetragen.
+##      (BEISPIEL – kein Standardwert)
+##      (Umgebung: CHATEXPORTER_EDGE_USER_DATA_DIR, CHATEXPORTER__PROVIDERS__CHATGPT__BROWSER__USER_DATA_DIR)
+#       user_data_dir: D:/BEISPIEL/browser_profil
+##      Browser zum Profil (auto = Edge bei festem Profil; wird von der Suche eingetragen).
+##      (erlaubt: auto, edge, chrome, chrome_for_testing)
+##      (Umgebung: CHATEXPORTER_BROWSER_KIND, CHATEXPORTER__PROVIDERS__CHATGPT__BROWSER__KIND)
+#       kind: auto
+##      Browser-Programm (Standard: automatisch erkennen; wird von der Suche eingetragen).
+##      (BEISPIEL – kein Standardwert)
+##      (Umgebung: CHATEXPORTER_BROWSER_EXE, CHATEXPORTER__PROVIDERS__CHATGPT__BROWSER__EXECUTABLE)
+#       executable: C:/BEISPIEL/Programme/Google/Chrome/Application/chrome.exe
+##      Aelterer Name fuer das Edge-Programm (gilt, wenn executable leer ist).
+##      (BEISPIEL – kein Standardwert)
+##      (Umgebung: CHATEXPORTER_EDGE_EXE, CHATEXPORTER__PROVIDERS__CHATGPT__BROWSER__EDGE_EXECUTABLE)
+#       edge_executable: C:/BEISPIEL/Programme/Microsoft/Edge/Application/msedge.exe
+##      Chrome for Testing als letzte Stufe nach Rueckfrage herunterladen (nur bei interaktivem Start).
+##      (Umgebung: CHATEXPORTER_BROWSER_ALLOW_DOWNLOAD, CHATEXPORTER__PROVIDERS__CHATGPT__BROWSER__ALLOW_DOWNLOAD)
+#       allow_download: true
+##      Quelle der Chrome-for-Testing-Versionen.
+##      (Umgebung: CHATEXPORTER__PROVIDERS__CHATGPT__BROWSER__CHROME_FOR_TESTING_URL)
+#       chrome_for_testing_url: https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json
+##      CDP-Adresse.
+##      (Umgebung: CHATEXPORTER_CDP_HOST, CHATEXPORTER__PROVIDERS__CHATGPT__BROWSER__CDP_HOST)
+#       cdp_host: 127.0.0.1
+##      CDP-Port.
+##      (Umgebung: CHATEXPORTER_CDP_PORT, CHATEXPORTER__PROVIDERS__CHATGPT__BROWSER__CDP_PORT)
+#       cdp_port: 9223
+##      Browser bei Bedarf starten.
+##      (Umgebung: CHATEXPORTER_EDGE_LAUNCH_IF_NEEDED, CHATEXPORTER__PROVIDERS__CHATGPT__BROWSER__LAUNCH_IF_NEEDED)
+#       launch_if_needed: true
+##      Startseite.
+##      (Umgebung: CHATEXPORTER_EDGE_OPEN_URL, CHATEXPORTER__PROVIDERS__CHATGPT__BROWSER__OPEN_URL)
+#       open_url: https://chatgpt.com/
+##      Wartezeit auf den Browser (ms).
+##      (Umgebung: CHATEXPORTER_EDGE_CONNECT_TIMEOUT_MS, CHATEXPORTER__PROVIDERS__CHATGPT__BROWSER__CONNECT_TIMEOUT_MS)
+#       connect_timeout_ms: 15000
+##      Bei Bedarf interaktiv anmelden.
+##      (Umgebung: CHATEXPORTER_INTERACTIVE_REAUTH, CHATEXPORTER__PROVIDERS__CHATGPT__BROWSER__INTERACTIVE_REAUTH)
+#       interactive_reauth: true
+##      Browser nach dem Lauf offen lassen.
+##      (Umgebung: CHATEXPORTER_LEAVE_BROWSER_RUNNING, CHATEXPORTER__PROVIDERS__CHATGPT__BROWSER__LEAVE_BROWSER_RUNNING)
+#       leave_browser_running: true
+##      Fenster eines vom ChatExporter gestarteten Browsers; sichtbar wird es nur, wenn eine Eingabe noetig ist:
+##      offscreen = ausserhalb des Bildschirms (Standard); minimized = minimiert (Anmeldung langsamer);
+##      visible = immer sichtbar.
+##      (erlaubt: offscreen, minimized, visible)
+##      (Umgebung: CHATEXPORTER_BROWSER_WINDOW, CHATEXPORTER__PROVIDERS__CHATGPT__BROWSER__WINDOW)
+#       window: offscreen
+#     auth:
+##      Automatische Anmeldung (E-Mail, Passwort, Einmalcode), wenn keine gueltige Sitzung besteht:
+##      auto = wenn Zugangsdaten in .env/Umgebung stehen; on = immer (fehlende Daten sind ein Fehler); off = nie.
+##      (erlaubt: auto, on, off)
+##      (Umgebung: CHATEXPORTER_AUTO_LOGIN, CHATEXPORTER__PROVIDERS__CHATGPT__AUTH__AUTO_LOGIN)
+#       auto_login: auto
+##      Hoechstdauer einer automatischen Anmeldung.
+##      (Umgebung: CHATEXPORTER_LOGIN_TIMEOUT_SECONDS, CHATEXPORTER__PROVIDERS__CHATGPT__AUTH__LOGIN_TIMEOUT_SECONDS)
+#       login_timeout_seconds: 120
+##      E-Mail-Adresse des ChatGPT-Kontos (nur .env/Umgebung).
+##      (BEISPIEL – kein Standardwert)
+##      (Umgebung: CHATGPT_USERNAME, CHATEXPORTER__PROVIDERS__CHATGPT__AUTH__USERNAME)
+#       username: "<geheim – nur in der .env oder Umgebung setzen>"
+##      Passwort des ChatGPT-Kontos (nur .env/Umgebung).
+##      (BEISPIEL – kein Standardwert)
+##      (Umgebung: CHATGPT_PASSWORD, CHATEXPORTER__PROVIDERS__CHATGPT__AUTH__PASSWORD)
+#       password: "<geheim – nur in der .env oder Umgebung setzen>"
+##      2FA-Secret (Base32, otpauth://-URI oder verschluesselter Wert der Two-Factor Tools; nur .env/Umgebung).
+##      (BEISPIEL – kein Standardwert)
+##      (Umgebung: CHATGPT_2FA_SECRET, CHATEXPORTER__PROVIDERS__CHATGPT__AUTH__TOTP_SECRET)
+#       totp_secret: "<geheim – nur in der .env oder Umgebung setzen>"
+##      Statt des Secrets: Kennung/Alias im verschluesselten Windows-Speicher der Two-Factor Tools.
+##      (BEISPIEL – kein Standardwert)
+##      (Umgebung: CHATGPT_2FA_REFERENCE, CHATEXPORTER__PROVIDERS__CHATGPT__AUTH__TOTP_REFERENCE)
+#       totp_reference: "<geheim – nur in der .env oder Umgebung setzen>"
+#     api:
+##      Basis-URL der Backend-API.
+##      (Umgebung: CHATEXPORTER_API_BASE_URL, CHATEXPORTER__PROVIDERS__CHATGPT__API__BASE_URL)
+#       base_url: https://chatgpt.com
+##      Zeitlimit je Anfrage (ms).
+##      (Umgebung: CHATEXPORTER_API_REQUEST_TIMEOUT_MS, CHATEXPORTER__PROVIDERS__CHATGPT__API__REQUEST_TIMEOUT_MS)
+#       request_timeout_ms: 120000
+#     sync:
+##      auto = sparsam, bei Bedarf vollstaendig; full = gesamter Bestand; recent = nur zuletzt geaenderte.
+##      (erlaubt: auto, full, recent)
+##      (Umgebung: CHATEXPORTER_LISTING_MODE, CHATEXPORTER__PROVIDERS__CHATGPT__SYNC__LISTING_MODE)
+#       listing_mode: auto
+##      Eintraege je Listing-Seite (hoechstens 100).
+##      (Umgebung: CHATEXPORTER_LISTING_LIMIT, CHATEXPORTER__PROVIDERS__CHATGPT__SYNC__LISTING_LIMIT)
+#       listing_limit: 100
+##      Deckel fuer recent (Seiten).
+##      (Umgebung: CHATEXPORTER_RECENT_MAX_PAGES, CHATEXPORTER__PROVIDERS__CHATGPT__SYNC__RECENT_MAX_PAGES)
+#       recent_max_pages: 3
+##      Unveraenderte Eintraege in Folge ab der Grenze.
+##      (Umgebung: CHATEXPORTER_RECENT_CONFIRM_UNCHANGED, CHATEXPORTER__PROVIDERS__CHATGPT__SYNC__RECENT_CONFIRM_UNCHANGED)
+#       recent_confirm_unchanged: 3
+##      Grenz-Chats inhaltlich pruefen.
+##      (Umgebung: CHATEXPORTER_VERIFY_BOUNDARY, CHATEXPORTER__PROVIDERS__CHATGPT__SYNC__VERIFY_BOUNDARY)
+#       verify_boundary: true
+##      Obergrenze Detailabrufe der Grenzpruefung (0 = unbegrenzt).
+##      (Umgebung: CHATEXPORTER_VERIFY_MAX_REQUESTS, CHATEXPORTER__PROVIDERS__CHATGPT__SYNC__VERIFY_MAX_REQUESTS)
+#       verify_max_requests: 0
+##      Dateien/Anhaenge laden.
+##      (Umgebung: CHATEXPORTER_FETCH_FILES, CHATEXPORTER__PROVIDERS__CHATGPT__SYNC__FETCH_FILES)
+#       fetch_files: true
+##      Canvas-Dokumente laden.
+##      (Umgebung: CHATEXPORTER_FETCH_TEXTDOCS, CHATEXPORTER__PROVIDERS__CHATGPT__SYNC__FETCH_TEXTDOCS)
+#       fetch_textdocs: true
+##      Offene Dateien erneut versuchen.
+##      (Umgebung: CHATEXPORTER_RETRY_PENDING_FILES, CHATEXPORTER__PROVIDERS__CHATGPT__SYNC__RETRY_PENDING_FILES)
+#       retry_pending_files: true
+##      Nach einzelnen Fehlern weitermachen.
+##      (Umgebung: CHATEXPORTER_CONTINUE_ON_ERROR, CHATEXPORTER__PROVIDERS__CHATGPT__SYNC__CONTINUE_ON_ERROR)
+#       continue_on_error: true
+##      Fehlerbudget je Lauf (API).
+##      (Umgebung: CHATEXPORTER_MAX_ERRORS_PER_RUN, CHATEXPORTER__PROVIDERS__CHATGPT__SYNC__MAX_ERRORS_PER_RUN)
+#       max_errors_per_run: 5
+##      Fehlerbudget je Lauf (Dateien).
+##      (Umgebung: CHATEXPORTER_MAX_FILE_ERRORS_PER_RUN, CHATEXPORTER__PROVIDERS__CHATGPT__SYNC__MAX_FILE_ERRORS_PER_RUN)
+#       max_file_errors_per_run: 50
+##      Beim Rate-Limit warten (Minuten; 0 = Lauf regulaer beenden).
+##      (Umgebung: CHATEXPORTER_RATE_LIMIT_WAIT_MINUTES, CHATEXPORTER__PROVIDERS__CHATGPT__SYNC__RATE_LIMIT_WAIT_MINUTES)
+#       rate_limit_wait_minutes: 0
+##      Obergrenze Wartezyklen (0 = unbegrenzt).
+##      (Umgebung: CHATEXPORTER_MAX_RATE_LIMIT_CYCLES, CHATEXPORTER__PROVIDERS__CHATGPT__SYNC__MAX_RATE_LIMIT_CYCLES)
+#       max_rate_limit_cycles: 0
+#       quarantine:
+##        Dauerhaft fehlschlagende Datensaetze aussortieren.
+##        (Umgebung: CHATEXPORTER_QUARANTINE_ENABLED, CHATEXPORTER__PROVIDERS__CHATGPT__SYNC__QUARANTINE__ENABLED)
+#         enabled: false
+##        Getrennte Laeufe, nicht Versuche.
+##        (Umgebung: CHATEXPORTER__PROVIDERS__CHATGPT__SYNC__QUARANTINE__MIN_FAILED_RUNS)
+#         min_failed_runs: 3
+##        Abstand erster bis letzter Vorfall.
+##        (Umgebung: CHATEXPORTER__PROVIDERS__CHATGPT__SYNC__QUARANTINE__MIN_AGE_HOURS)
+#         min_age_hours: 24
+##        Danach erneut pruefen.
+##        (Umgebung: CHATEXPORTER__PROVIDERS__CHATGPT__SYNC__QUARANTINE__REVIEW_AFTER_DAYS)
+#         review_after_days: 30
+#       manual_exclusions:
+##        Nach manueller Pruefung bewusst ausgeschlossen
+##        Bewusst ausgeschlossene Konversationen: Liste von {id, reason}.
+##        (Umgebung: CHATEXPORTER__PROVIDERS__CHATGPT__SYNC__MANUAL_EXCLUSIONS__CONVERSATIONS)
+#         conversations: []
+##        Bewusst ausgeschlossene Dateien: Liste von {id, reason}.
+##        (Umgebung: CHATEXPORTER__PROVIDERS__CHATGPT__SYNC__MANUAL_EXCLUSIONS__FILES)
+#         files: []
+#   opencode:
+##    OpenCode-Programm.
+##    (Umgebung: CHATEXPORTER__PROVIDERS__OPENCODE__OPENCODE_EXE)
+#     opencode_exe: opencode
+##    OpenCode-Datenbank (Standard: ueber die CLI ermitteln).
+##    (BEISPIEL – kein Standardwert)
+##    (Umgebung: CHATEXPORTER__PROVIDERS__OPENCODE__DB_PATH)
+#     db_path: C:/BEISPIEL/.local/share/opencode/opencode.db
+##    Ausweich-Arbeitsordner fuer die CLI.
+##    (BEISPIEL – kein Standardwert)
+##    (Umgebung: CHATEXPORTER__PROVIDERS__OPENCODE__CLI_CWD)
+#     cli_cwd: C:/BEISPIEL/projekt
+##    Zeitlimit je Export (Sekunden).
+##    (Umgebung: CHATEXPORTER__PROVIDERS__OPENCODE__TIMEOUT)
+#     timeout: 180
+##    Wiederholungen je Session.
+##    (Umgebung: CHATEXPORTER__PROVIDERS__OPENCODE__MAX_RETRIES)
+#     max_retries: 2
+#   codex:
+##    Codex-Ordner (Standard: ~/.codex).
+##    (BEISPIEL – kein Standardwert)
+##    (Umgebung: CHATEXPORTER__PROVIDERS__CODEX__SOURCE_ROOT)
+#     source_root: C:/Users/BEISPIEL/.codex
+##    Wiederholungen beim Kopieren.
+##    (Umgebung: CHATEXPORTER__PROVIDERS__CODEX__MAX_RETRIES)
+#     max_retries: 2
+##    Unveraenderte Dateien zusaetzlich per Hash pruefen.
+##    (Umgebung: CHATEXPORTER__PROVIDERS__CODEX__VERIFY_UNCHANGED)
+#     verify_unchanged: false
+#   claude:
+##    Claude-Code-Ordner (Standard: ~/.claude).
+##    (BEISPIEL – kein Standardwert)
+##    (Umgebung: CHATEXPORTER__PROVIDERS__CLAUDE__SOURCE_ROOT)
+#     source_root: C:/Users/BEISPIEL/.claude
+##    Wiederholungen beim Kopieren.
+##    (Umgebung: CHATEXPORTER__PROVIDERS__CLAUDE__MAX_RETRIES)
+#     max_retries: 2
+##    Unveraenderte Dateien zusaetzlich per Hash pruefen.
+##    (Umgebung: CHATEXPORTER__PROVIDERS__CLAUDE__VERIFY_UNCHANGED)
+#     verify_unchanged: false

@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>Conversation Viewer</title>
+<style>
+/* Conversation Viewer — theme tokens */
+:root,[data-theme="dark"] {
+  color-scheme:dark;
+  --bg:#10151d;--panel:#151d28;--panel2:#1a2532;--surface:#20303d;--line:#304150;
+  --text:#e6eef7;--muted:#9bafbf;--subtle:#7891a3;--accent:#49c9ba;--accentbg:#183e40;
+  --blue:#9dc9ff;--amber:#e9c081;--red:#f2a0a2;--green:#92dab0;--code-bg:#0c1721;
+  --top:#131c27;--user-bg:#1d3042;--user-line:#385975;--assistant-bg:#17212e;
+  --shadow:0 10px 36px rgba(0,0,0,.17);
+  --mono:'Cascadia Code','Consolas','SFMono-Regular',monospace;
+  --sans:'Inter','Segoe UI',system-ui,sans-serif;
+}
+[data-theme="light"] {
+  color-scheme:light;
+  --bg:#f3f6f9;--panel:#ffffff;--panel2:#f0f4f7;--surface:#e7eff1;--line:#dce4eb;
+  --text:#203344;--muted:#546c7d;--subtle:#6c8393;--accent:#087f78;--accentbg:#e2f5f1;
+  --blue:#185e9b;--amber:#91621f;--red:#a53940;--green:#237b51;--code-bg:#eef3f7;
+  --top:#ffffff;--user-bg:#eaf3fc;--user-line:#c9deef;--assistant-bg:#ffffff;
+  --shadow:0 10px 36px rgba(18,42,62,.08);
+}
+*{box-sizing:border-box}html,body{height:100%;margin:0}body{font:14px/1.55 var(--sans);background:var(--bg);color:var(--text);overflow:hidden}button,input{font:inherit}button{cursor:pointer;color:inherit}button:disabled{opacity:.48;cursor:wait}a{color:var(--blue)}button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}::selection{background:var(--accentbg)}[hidden]{display:none!important}
+#app{display:flex;height:100vh;min-width:0}.left{width:344px;flex:0 0 344px;min-width:0;display:flex;flex-direction:column;background:var(--panel);border-right:1px solid var(--line)}.left-head{padding:20px 16px 13px;border-bottom:1px solid var(--line)}.brand{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:750;letter-spacing:-.3px;margin-bottom:19px}.brand-mark{width:32px;height:32px;border-radius:9px;background:linear-gradient(145deg,#21877f,#50bda9);display:grid;place-items:center;color:white;font-size:20px;font-weight:600}.brand-main{flex:1}.brand .ro-label{font:700 10px var(--sans);letter-spacing:.8px;color:var(--subtle);border:1px solid var(--line);padding:3px 6px;border-radius:5px}.load-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.action,.icon-btn{display:inline-flex;justify-content:center;align-items:center;gap:7px;border:1px solid var(--line);border-radius:8px;padding:9px 11px;background:var(--panel2);transition:background .15s,color .15s}.action{font-size:12px;font-weight:650}.action:hover,.icon-btn:hover{background:var(--surface)}.action.primary{color:var(--accent);background:var(--accentbg);border-color:var(--accent)}.action.primary:hover{filter:brightness(1.09)}.action svg,.icon-btn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.hidden-input{display:none}.search-wrap{margin-top:13px;position:relative}.search{width:100%;outline:none;border:1px solid var(--line);border-radius:8px;color:var(--text);background:var(--bg);padding:10px 10px 10px 34px;font-size:12px}.search::placeholder{color:var(--subtle)}.search:focus{border-color:var(--accent)}.search-icon{position:absolute;left:12px;top:11px;width:14px;height:14px;color:var(--subtle);pointer-events:none}.status{font-size:10.5px;line-height:1.5;color:var(--subtle);padding-top:10px;overflow-wrap:anywhere;min-height:25px}.status.success{color:var(--green)}.status.error{color:var(--red)}.status.warning{color:var(--amber)}.list-heading{padding:15px 16px 8px;display:flex;justify-content:space-between;align-items:center;color:var(--subtle);font-size:10px;text-transform:uppercase;letter-spacing:1px;font-weight:750}.list-count{font-variant-numeric:tabular-nums;color:var(--muted)}.conv-list{min-height:0;overflow:auto;flex:1;padding:3px 8px 15px}.conv-item{display:block;width:100%;border:1px solid transparent;border-left:3px solid transparent;border-radius:8px;text-align:left;background:transparent;padding:11px 11px 10px;margin-bottom:4px}.conv-item:hover{background:var(--panel2)}.conv-item.active{background:var(--accentbg);border-color:var(--line);border-left-color:var(--accent)}.conv-title{display:block;font-size:12.5px;font-weight:710;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}.conv-meta{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:7px;color:var(--subtle);font-size:10.5px}.meta-unit{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}.meta-icon{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.conv-badges{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:7px}.pill{display:inline-flex;align-items:center;white-space:nowrap;border:1px solid var(--line);background:var(--panel2);color:var(--muted);padding:2px 7px;border-radius:5px;font:700 10px/1.5 var(--sans)}.provider{font-size:10px;letter-spacing:.15px}.provider.chatgpt{color:#68ceb2;border-color:#367866;background:#183b34}.provider.openai{color:#9dc2ff;border-color:#425f8b;background:#243449}.provider.codex{color:#e4c590;border-color:#7a6142;background:#392d22}.provider.opencode{color:#bcaaf8;border-color:#67598d;background:#312944}.provider.claude{color:#efb1a1;border-color:#8c6359;background:#402c2a}[data-theme="light"] .provider.chatgpt{color:#16694f;background:#e2f4ed;border-color:#badbc9}[data-theme="light"] .provider.openai{color:#365d9c;background:#e6edfc;border-color:#c2d2ee}[data-theme="light"] .provider.codex{color:#77511e;background:#f8efdf;border-color:#e7d7b8}[data-theme="light"] .provider.opencode{color:#6143a0;background:#f1ebfb;border-color:#ded0f5}[data-theme="light"] .provider.claude{color:#994e3e;background:#fff0eb;border-color:#edcabe}.pill.model{max-width:175px;overflow:hidden;text-overflow:ellipsis;font-weight:600;letter-spacing:0}.left-foot{display:flex;justify-content:space-between;gap:8px;padding:12px 16px;border-top:1px solid var(--line);color:var(--subtle);font-size:11px;font-variant-numeric:tabular-nums}
+.center{flex:1;min-width:0;display:flex;flex-direction:column}.topbar{min-height:66px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 23px;background:var(--top);border-bottom:1px solid var(--line)}.top-title{min-width:0;overflow:hidden}.top-title h2{font-size:15px;margin:0;font-weight:730;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}.top-sub{font-size:11px;color:var(--muted);white-space:nowrap;text-overflow:ellipsis;overflow:hidden}.top-actions{display:flex;align-items:center;gap:8px;flex:0 0 auto}.icon-btn{padding:7px 10px;font-size:12px;white-space:nowrap}.icon-btn.active{color:var(--accent);border-color:var(--accent)}.filters{display:flex;gap:13px;align-items:center;padding:9px 23px;border-bottom:1px solid var(--line);font-size:11px;color:var(--muted);flex-wrap:wrap;background:var(--top)}.filters label{cursor:pointer;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}.filters input{accent-color:var(--accent)}.filters .right-text{margin-left:auto;color:var(--subtle);font-size:10px}.scroll{min-height:0;overflow:auto;flex:1}.feed{max-width:980px;margin:auto;padding:24px 28px 90px}.welcome{height:100%;min-height:300px;display:grid;place-items:center}.welcome-card{text-align:center;max-width:460px;padding:36px}.welcome-symbol{display:grid;place-items:center;margin:auto;width:62px;height:62px;border:1px solid var(--line);border-radius:17px;background:var(--panel);color:var(--accent);font-size:31px}.welcome-card h2{font-size:20px;font-weight:730;margin:18px 0 6px}.welcome-card p{font-size:12.5px;color:var(--muted);margin:0}.conv-banner{border:1px solid var(--line);border-radius:10px;padding:16px 18px;background:var(--panel);margin-bottom:20px}.banner-title{font-size:18px;font-weight:730;line-height:1.35;margin-bottom:10px}.banner-meta{display:flex;align-items:center;flex-wrap:wrap;gap:9px 15px;color:var(--muted);font-size:11px}.banner-meta .meta-unit{gap:5px}.banner-source{color:var(--subtle);font:10px/1.6 var(--mono);margin-top:9px;overflow-wrap:anywhere}.statline{display:flex;gap:8px;justify-content:space-between;color:var(--subtle);font-size:11px;padding:5px 0}
+.turn-label{display:flex;align-items:center;gap:10px;font-size:10px;letter-spacing:1px;color:var(--subtle);font-weight:750;text-transform:uppercase;margin:22px 0 16px}.turn-label:before,.turn-label:after{content:"";height:1px;background:var(--line);flex:1}.event{margin:0 0 13px;scroll-margin-top:20px}.event.is-target{outline:2px solid var(--accent);border-radius:10px;outline-offset:3px}.event-meta{display:flex;align-items:center;gap:10px;margin-bottom:5px;color:var(--subtle);font-size:10px}.event-source{margin-left:auto;font:10px var(--mono)}.message{padding:16px 18px;border:1px solid var(--line);border-radius:11px;background:var(--assistant-bg)}.message.user{border-color:var(--user-line);background:var(--user-bg);margin-left:7%}.message.assistant{margin-right:2%}.message.system{background:var(--panel2)}.message-head{display:flex;gap:7px;align-items:center;margin-bottom:8px;font-size:10px;letter-spacing:.6px;text-transform:uppercase;font-weight:750;color:var(--accent)}.message.user .message-head{color:var(--blue)}.message.system .message-head{color:var(--amber)}.message .muted{color:var(--subtle);font-weight:500;letter-spacing:0;text-transform:none}.content{font-size:13.4px;line-height:1.68;overflow-wrap:anywhere}.content p{margin:.4em 0 .75em}.content h1,.content h2,.content h3,.content h4{line-height:1.35;margin:1em 0 .45em}.content h1{font-size:19px}.content h2{font-size:16px}.content h3{font-size:14px}.content ul,.content ol{margin:5px 0 11px;padding-left:22px}.content li{margin:3px 0}.content blockquote{margin:10px 0;padding:5px 12px;border-left:3px solid var(--accent);background:var(--panel2)}.content code:not(pre code){font:12px var(--mono);background:var(--panel2);padding:2px 4px;border-radius:4px}.content hr{border:none;border-top:1px solid var(--line)}.content a{color:var(--blue)}.content table{border-collapse:collapse;display:block;overflow:auto}.content th,.content td{padding:5px 9px;border:1px solid var(--line);text-align:left}.content th{background:var(--surface)}
+.code-block{border:1px solid var(--line);border-radius:8px;background:var(--code-bg);overflow:hidden;margin:10px 0}.code-head{display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid var(--line);padding:7px 10px;background:var(--panel2);font:11px var(--mono);color:var(--muted)}.copy-btn{border:1px solid var(--line);border-radius:5px;background:var(--panel);color:var(--muted);padding:3px 8px;font:11px var(--sans)}.copy-btn:hover{color:var(--text)}.code-block pre{margin:0;padding:13px 14px;white-space:pre;overflow:auto;font:12px/1.6 var(--mono);tab-size:2;color:var(--text)}.inline-file{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--panel2);border-radius:6px;padding:5px 9px;color:var(--blue);max-width:100%;overflow-wrap:anywhere;font:11px var(--mono)}
+.detail-card{border:1px solid var(--line);background:var(--panel);border-radius:8px;overflow:hidden}.detail-card>summary{list-style:none;display:flex;align-items:center;gap:9px;cursor:pointer;padding:10px 13px;font-size:12px;min-height:43px}.detail-card>summary::-webkit-details-marker{display:none}.detail-card>summary:before{content:'▸';color:var(--muted);transition:transform .13s}.detail-card[open]>summary:before{transform:rotate(90deg)}.detail-card>summary:hover{background:var(--panel2)}.detail-card .detail-body{border-top:1px solid var(--line);padding:12px 14px;font-size:12px}.detail-card .small-title{font-size:10px;color:var(--subtle);font-weight:750;text-transform:uppercase;letter-spacing:.6px;margin:7px 0}.reason-card{border-color:var(--line);background:var(--panel2)}.reason-card>summary{color:var(--muted)}.reasoning-text{color:var(--muted)}.tool-card>summary{color:var(--text)}.tool-name{font:650 12px var(--mono);overflow-wrap:anywhere}.detail-card .pill{margin-left:auto}.path{font:10.5px/1.5 var(--mono);color:var(--subtle);overflow-wrap:anywhere}.file-card>summary{color:var(--blue)}.file-action{margin-left:auto;color:var(--subtle);font-size:10px}.tool-bundle{margin:7px 0 15px;border:1px solid var(--line);border-radius:9px;background:var(--panel);overflow:hidden}.tool-bundle>summary{display:flex;align-items:center;gap:10px;cursor:pointer;padding:12px 14px;list-style:none;min-height:47px;font-size:12px;color:var(--text)}.tool-bundle>summary::-webkit-details-marker{display:none}.tool-bundle>summary:before{content:'▸';color:var(--accent);transition:transform .13s}.tool-bundle[open]>summary:before{transform:rotate(90deg)}.tool-bundle>summary:hover{background:var(--panel2)}.bundle-count{border:1px solid var(--line);border-radius:5px;padding:2px 6px;color:var(--accent);font-weight:800;font-size:10px}.bundle-names{color:var(--subtle);font-size:10.5px;margin-left:auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:45%}.tool-bundle-body{border-top:1px solid var(--line);padding:12px;background:var(--bg)}.tool-bundle-body>.event:last-child{margin-bottom:0}.notice{padding:10px 13px;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:7px;color:var(--muted);font-size:11.5px;background:var(--panel)}.notice.error{border-left-color:var(--red);color:var(--red)}.unknown{border:1px solid var(--line);background:var(--panel2);border-radius:8px;padding:10px;font-size:11px}.unknown summary{cursor:pointer}.nothing{color:var(--subtle);font-size:11px;padding:13px 0}.truncate-tip{padding:5px;color:var(--subtle);font-size:10px}
+.right{flex:0 0 292px;width:292px;min-width:0;display:flex;flex-direction:column;border-left:1px solid var(--line);background:var(--panel);transition:width .18s,flex-basis .18s}.right.collapsed{width:0;flex-basis:0;overflow:hidden;border-left:0}.right-head{min-height:66px;padding:0 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);font-size:12px;font-weight:750}.right-scroll{overflow:auto;flex:1;padding:12px}.right-scroll>details{border:1px solid var(--line);border-radius:8px;margin-bottom:10px;overflow:hidden}.right-scroll>details>summary{cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--panel2);font-size:11px;font-weight:750;list-style:none}.right-scroll>details>summary::-webkit-details-marker{display:none}.right-section-content{padding:6px 8px;max-height:40vh;overflow:auto}.ref-item{display:block;text-align:left;width:100%;padding:8px 7px;background:transparent;border:0;border-bottom:1px solid var(--line);border-radius:5px}.ref-item:last-child{border-bottom:0}.ref-item:not(:disabled):hover{background:var(--panel2)}.ref-item:disabled{cursor:default;opacity:.8}.ref-main{font-size:11px;font-weight:650;color:var(--text);overflow-wrap:anywhere}.ref-sub{font-size:10px;color:var(--subtle);overflow-wrap:anywhere;margin-top:3px}.source-card{font:10.5px/1.8 var(--mono);color:var(--muted);overflow-wrap:anywhere;white-space:pre-wrap}.right-overview{display:flex;gap:5px;flex-wrap:wrap}.right-overview .pill{font-size:10px}.source-section{padding:10px 12px}
+#drop-overlay{position:fixed;inset:11px;z-index:50;background:var(--bg);opacity:.96;border:2px dashed var(--accent);border-radius:13px;display:grid;place-items:center;pointer-events:none}#drop-overlay .drop-text{font-size:17px;font-weight:750;color:var(--accent)}#drop-overlay .drop-sub{font-size:11px;color:var(--muted);text-align:center;margin-top:5px}::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px}::-webkit-scrollbar-thumb:hover{background:var(--subtle)}
+@media(max-width:1180px){.left{width:300px;flex-basis:300px}.right{width:258px;flex-basis:258px}.feed{padding:22px 18px 70px}.filters{gap:8px;padding:8px 14px}}@media(max-width:900px){.right{position:absolute;right:0;top:66px;bottom:0;z-index:20;box-shadow:var(--shadow);width:300px;flex-basis:300px}.left{width:275px;flex-basis:275px}}@media(max-width:680px){body{overflow:auto}#app{height:100dvh}.left{width:210px;flex-basis:210px}.left-head{padding:11px}.load-grid{grid-template-columns:1fr}.brand .ro-label{display:none}.topbar{padding:9px 12px}.feed{padding:14px}.filters{padding:7px 12px}.filters .right-text{display:none}.right{top:0;max-width:90vw}.message.user{margin-left:0}}
+
+</style>
+</head>
+<body>
+<div id="app">
+  <aside class="left" aria-label="Conversations">
+    <div class="left-head">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">◇</span><span class="brand-main">Conversation <span style="color:var(--accent)">Viewer</span></span><span class="ro-label" title="Quelldaten werden nur gelesen">READ ONLY</span></div>
+      <div class="load-grid">
+        <button class="action primary" id="load-root" type="button"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h5l2 3h7a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Ordner öffnen</button>
+        <button class="action" id="load-files" type="button"><svg viewBox="0 0 24 24"><path d="M12 4v16M4 12h16"/></svg>Dateien hinzufügen</button>
+      </div>
+      <input class="hidden-input" id="root-input" type="file" webkitdirectory multiple>
+      <input class="hidden-input" id="file-input" type="file" accept=".json,.jsonl,application/json" multiple>
+      <div class="search-wrap"><svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input id="search" class="search" type="search" placeholder="Conversations durchsuchen" aria-label="Conversations durchsuchen" autocomplete="off"></div>
+      <div id="status" class="status" role="status" aria-live="polite">Kein Ordner geladen.</div>
+    </div>
+    <div class="list-heading"><span>Conversations</span><span class="list-count" id="match-count">0</span></div>
+    <nav class="conv-list" id="conv-list" aria-label="Conversation-Liste"></nav>
+    <div class="left-foot"><span id="total-convs">0 Sessions</span><span id="total-events">0 Events</span></div>
+  </aside>
+  <section class="center" aria-label="Conversation-Ansicht">
+    <header class="topbar">
+      <div class="top-title"><h2 id="top-title">Conversations</h2><div class="top-sub" id="top-sub">Lokale Gesprächsansicht</div></div>
+      <div class="top-actions">
+        <button class="icon-btn" id="theme-toggle" type="button" aria-label="Darstellung ändern" title="Hell-/Dunkelmodus"></button>
+        <button class="icon-btn" id="details-toggle" type="button" aria-expanded="true" title="Rechte Seitenleiste ein-/ausblenden">☷ Details</button>
+      </div>
+    </header>
+    <div class="filters" aria-label="Ansichtsfilter">
+      <label><input id="filter-tools" type="checkbox" checked>Tools</label>
+      <label><input id="group-tools" type="checkbox" checked>Gruppieren</label>
+      <label><input id="filter-reasoning" type="checkbox" checked>Reasoning</label>
+      <label><input id="filter-files" type="checkbox" checked>Dateien</label>
+      <label><input id="filter-notices" type="checkbox" checked>Ereignisse</label>
+      <label><input id="filter-internal" type="checkbox">System/Developer</label>
+    </div>
+    <div class="scroll" id="main-scroll">
+      <section class="welcome" id="welcome"><div class="welcome-card"><div class="welcome-symbol" aria-hidden="true">◇</div><h2>Noch keine Conversation geöffnet</h2><p>Wähle links einen Ordner oder füge JSON-/JSONL-Dateien hinzu.</p></div></section>
+      <article class="feed" id="feed" hidden></article>
+    </div>
+  </section>
+  <aside class="right" id="right-panel" aria-label="Details">
+    <header class="right-head"><span>Details &amp; Referenzen</span><button class="icon-btn" id="details-close" type="button" aria-label="Seitenleiste schließen">×</button></header>
+    <div id="right-content" class="right-scroll"><div class="nothing">Keine Conversation ausgewählt.</div></div>
+  </aside>
+</div>
+<div id="drop-overlay" hidden aria-hidden="true"><div><div class="drop-text">Dateien oder Ordner hinzufügen</div><div class="drop-sub">JSON, JSONL · Verzeichnisse werden rekursiv eingelesen</div></div></div>
+
+<script>
+
+(() => {
+'use strict';
+
+// ============================================================================
+// 00 · CONFIG / APP STATE — hier können später Defaultpfade geändert werden.
+//     Der Browser erhält nur LESERECHTE; keine Rohdaten-Schreib-API im Viewer.
+// ============================================================================
+const CONFIG = Object.freeze({
+  dataFolder: 'data', rawFolder: 'raw_storage', conversationsFolder: 'conversations',
+  monthPattern: /^\d{4}-(0[1-9]|1[0-2])$/, yieldEvery: 25, maxPreviewChars: 45000,
+  directoryDbName: 'universal-conversation-viewer-dir', directoryStore: 'handles', directoryKey: 'default-data-root'
+});
+const STATE = { conversations: new Map(), activeKey:null, search:'', busy:false, latestDirectory:null, refs:new Map(), rightOpen:true };
+const el = id => document.getElementById(id);
+const asText = value => value == null ? '' : String(value);
+const esc = value => asText(value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+const cleanPath = value => asText(value).replace(/\\/g,'/').replace(/^\/+|\/+$/g,'');
+const strDate = v => { if(v==null||v==='')return '—'; const n = typeof v==='number' ? new Date(v < 1e11 ? v*1000:v) : new Date(v); return Number.isNaN(n.getTime())?'—':n.toLocaleString('de-DE',{dateStyle:'medium',timeStyle:'short'}); };
+const dateValue = v => {if(v==null||v==='')return 0;const n=typeof v==='number'?(v<1e11?v*1000:v):new Date(v).getTime();return Number.isFinite(n)?n:0;};
+const formTime = ms => ms?strDate(ms):'—';
+const stringify = val => typeof val==='string'?val:JSON.stringify(val,null,2);
+function truncate(str,n=CONFIG.maxPreviewChars){ const s=asText(str);return {text:s.slice(0,n), clipped:s.length>n, total:s.length}; }
+function setStatus(s,cls=''){el('status').textContent=s;el('status').className='status '+cls;}
+function setBusy(b){STATE.busy=b;el('load-root').disabled=b;el('load-files').disabled=b;}
+const yieldUI = () => new Promise(resolve=>setTimeout(resolve,0));
+function eventBase(kind,options={}){
+  return { id:options.id||`evt-${Math.random().toString(36).slice(2)}`, kind, ts:dateValue(options.ts), source:options.source||{},
+    role:options.role||null, blocks:options.blocks||[], ...options };
+}
+function block(kind,data={}){return {kind,...data};}
+function newConversation(data){
+  return {
+    key:`${data.formatId}:${data.id}`, id:asText(data.id), title:asText(data.title||'Unbenannte Conversation'),
+    formatId:data.formatId, formatLabel:data.formatLabel, sourcePath:cleanPath(data.sourcePath),
+    createTime:dateValue(data.createTime), updateTime:dateValue(data.updateTime), model:data.model||'',
+    events:data.events||[], fileReferences:data.fileReferences||[], toolReferences:data.toolReferences||[],
+    metadata:data.metadata||{}, skipped:data.skipped||{},
+    get messages(){return this.events.filter(e=>e.kind==='message'&&(e.role==='user'||e.role==='assistant'));},
+    get searchText(){if(!this._searchTextCache)this._searchTextCache=`${this.title}\n${this.events.filter(e=>e.kind!=='message'||!['system','developer'].includes(e.role)).map(eventSearchText).join('\n')}`.toLocaleLowerCase('de-DE');return this._searchTextCache;}
+  };
+}
+function eventSearchText(e){return [e.kind,e.role,e.title,e.summary,e.name,e.input,e.output,e.path,e.diff,e.content,...(e.blocks||[]).map(b=>[b.text,b.language,b.name,b.path,b.caption].join(' '))].filter(Boolean).join(' ');}
+function normalSource(format,path,ordinal,id){return {format,path,ordinal:ordinal??null,originalId:id||null};}
+
+// ============================================================================
+// 01 · NORMALIZED CONTENT BLOCK STANDARD
+//      markdown, text, code, file, image, json + UNKNOWN fallback.
+//      Anhangsdateien werden NICHT geöffnet oder aufgelöst.
+// ============================================================================
+const BlockRenderers = new Map();
+function registerBlock(kind,render){BlockRenderers.set(kind,render);}
+function renderBlock(b){return (BlockRenderers.get(b.kind)||BlockRenderers.get('unknown'))(b);}
+function makeCode({text='',language='text',caption=''}){
+  const wrap=document.createElement('div');wrap.className='code-block';
+  const head=document.createElement('div');head.className='code-head';
+  const label=document.createElement('span');label.textContent=`${language||'text'}${caption?' · '+caption:''}`;
+  const copy=document.createElement('button');copy.className='copy-btn';copy.type='button';copy.textContent='Kopieren';
+  const original=asText(text);
+  copy.addEventListener('click',async()=>{
+    try {
+      if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(original);}
+      else {
+        const tmp=document.createElement('textarea');tmp.value=original;
+        tmp.style.cssText='position:fixed;left:-10000px;top:0;opacity:0';
+        document.body.appendChild(tmp);tmp.select();
+        const copied=document.execCommand('copy');tmp.remove();
+        if(!copied)throw Error('Clipboard unavailable');
+      }
+      copy.textContent='Kopiert ✓';
+    }catch(_){copy.textContent='Kopieren nicht verfügbar';}
+    setTimeout(()=>{copy.textContent='Kopieren';},1800);
+  });
+  head.append(label,copy);
+  const pre=document.createElement('pre'), code=document.createElement('code');code.textContent=original;pre.appendChild(code);wrap.append(head,pre);return wrap;
+}
+function inlineMd(s){
+  // Nur HTML-escaped Eingaben; kein roh eingebettetes HTML oder Script.
+  let out=esc(s);const spans=[];
+  out=out.replace(/`([^`\n]+)`/g,(_,v)=>{const idx=spans.length;spans.push(`<code>${v}</code>`);return `\uE000${idx}\uE001`;});
+  out=out.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g,'<em>$1</em>');
+  out=out.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)"'&<>]+)\)/g,(_all,label,href)=>`<a href="${href}" rel="noopener noreferrer" target="_blank">${label}</a>`);
+  return out.replace(/\uE000(\d+)\uE001/g,(_,id)=>spans[Number(id)]||'');
+}
+function makeMd(txt){
+  const container=document.createElement('div');container.className='content';
+  const lines=asText(txt).replace(/\r\n?/g,'\n').split('\n');let i=0;
+  function isSpecial(line){return /^\s*```/.test(line)||/^#{1,4}\s/.test(line)||/^\s*>\s?/.test(line)||/^\s*[-*]\s+/.test(line)||/^\s*\d+\.\s+/.test(line)||/^\s*---+\s*$/.test(line);}
+  while(i<lines.length){const raw=lines[i],line=raw.trimEnd();if(!line.trim()){i++;continue;}
+    const fence=line.match(/^\s*```([^`]*)\s*$/);
+    if(fence){let lang=fence[1].trim()||'text';const contents=[];i++;while(i<lines.length&&!/^\s*```\s*$/.test(lines[i]))contents.push(lines[i++]);if(i<lines.length)i++;container.appendChild(makeCode({text:contents.join('\n'),language:lang}));continue;}
+    const heading=line.match(/^(#{1,4})\s+(.+)/);if(heading){const h=document.createElement(`h${Math.min(heading[1].length+1,4)}`);h.innerHTML=inlineMd(heading[2]);container.appendChild(h);i++;continue;}
+    if(/^\s*---+\s*$/.test(line)){container.appendChild(document.createElement('hr'));i++;continue;}
+    if(/^\s*>\s?/.test(line)){const q=[];while(i<lines.length&&/^\s*>\s?/.test(lines[i]))q.push(lines[i++].replace(/^\s*>\s?/,''));const node=document.createElement('blockquote');node.innerHTML=q.map(inlineMd).join('<br>');container.appendChild(node);continue;}
+    if(/^\s*[-*]\s+/.test(line)||/^\s*\d+\.\s+/.test(line)){const ordered=/^\s*\d+\.\s+/.test(line),list=document.createElement(ordered?'ol':'ul');while(i<lines.length&&new RegExp(ordered?'^\\s*\\d+\\.\\s+':'^\\s*[-*]\\s+').test(lines[i])){const item=document.createElement('li');item.innerHTML=inlineMd(lines[i].replace(ordered?/^\s*\d+\.\s+/:/^\s*[-*]\s+/,''));list.appendChild(item);i++;}container.appendChild(list);continue;}
+    const para=[line];i++;while(i<lines.length&&lines[i].trim()&&!isSpecial(lines[i]))para.push(lines[i++].trimEnd());const p=document.createElement('p');p.innerHTML=para.map(inlineMd).join('<br>');container.appendChild(p);
+  }return container;
+}
+registerBlock('markdown',b=>makeMd(b.text));
+registerBlock('text',b=>{const p=document.createElement('div');p.className='content';p.style.whiteSpace='pre-wrap';p.textContent=asText(b.text);return p;});
+registerBlock('code',b=>makeCode(b));
+registerBlock('json',b=>makeCode({text:stringify(b.value),language:'json'}));
+registerBlock('file',b=>{const n=document.createElement('span');n.className='inline-file';n.textContent=`▤ ${b.name||b.path||'Dateireferenz (nicht aufgelöst)'}`;n.title='Nur Referenz, kein Zugriff auf Anhang';return n;});
+registerBlock('image',b=>{const n=document.createElement('span');n.className='inline-file';n.textContent=`▧ ${b.caption||'Bildreferenz (kein Dateizugriff)'}`;return n;});
+registerBlock('unknown',b=>{const n=document.createElement('div');n.className='unknown';n.textContent=`Nicht unterstützter Inhaltsblock: ${b.sourceKind||b.kind||'unbekannt'} (Rohdaten unverändert)`;return n;});
+function contentFromParts(parts,defaultKind='markdown'){
+  return (Array.isArray(parts)?parts:[]).map(part=>{
+    if(typeof part==='string')return block(defaultKind,{text:part});
+    if(!part||typeof part!=='object')return block('unknown',{sourceKind:typeof part});
+    const t=part.type||part.content_type||'';
+    if(['text','input_text','output_text','summary_text','Text'].includes(t)||typeof part.text==='string')return block(defaultKind,{text:part.text||''});
+    if(['input_image','image','image_asset_pointer'].includes(t))return block('image',{caption:part.caption||part.asset_pointer||part.image_url||'Bildreferenz'});
+    if(['input_file','file','file_reference'].includes(t))return block('file',{name:part.name||part.filename||part.file_id,path:part.path||''});
+    return block('unknown',{sourceKind:t||'unbekannt'});
+  });
+}
+
+// ============================================================================
+// 02 · SHARED OPENAI MAPPING GRAPH (kein Envelope, keine UI-Abhängigkeit)
+// ============================================================================
+function currentBranch(raw){const map=raw.mapping||{},arr=[],visited=new Set();let nodeId=raw.current_node;
+  while(nodeId!=null&&!visited.has(nodeId)){visited.add(nodeId);const node=map[nodeId];if(!node)break;arr.push({nodeId,node});nodeId=node.parent;}
+  if(arr.length)return arr.reverse();
+  return Object.entries(map).filter(([_,n])=>n?.message).sort((a,b)=>dateValue(a[1].message?.create_time)-dateValue(b[1].message?.create_time)).map(([id,node])=>({nodeId:id,node}));
+}
+function openAIContent(content){if(!content)return[];const type=content.content_type||'text';
+  if(type==='code')return [block('code',{text:content.text||'',language:content.language||'text'})];
+  if(Array.isArray(content.parts))return contentFromParts(content.parts,'markdown').filter(b=>b.kind!=='markdown'||b.text.trim());
+  if(typeof content.text==='string')return [block('markdown',{text:content.text})];
+  if(typeof content.content==='string')return [block('markdown',{text:content.content})];
+  return [];
+}
+function graphToConversation(raw,{formatId,formatLabel,sourcePath,envelope=null}){
+  const events=[],files=Array.isArray(envelope?.file_references)?envelope.file_references.slice():[],refs=Array.isArray(envelope?.tool_references)?envelope.tool_references.slice():[];
+  const pending=[];let hiddenThoughts=0;
+  for(const {nodeId,node} of currentBranch(raw)){const msg=node.message;if(!msg)continue;const role=msg.author?.role||'unknown',typ=msg.content?.content_type||'text',src=normalSource(formatId,sourcePath,null,nodeId),ts=msg.create_time;
+    if(typ==='thoughts'){hiddenThoughts++;continue;}
+    if(typ==='reasoning_recap'){const val=msg.content?.content||'';if(val)events.push(eventBase('reasoning',{id:`${nodeId}:recap`,title:'Reasoning-Zusammenfassung',summary:val,ts,source:src}));continue;}
+    const blocks=openAIContent(msg.content),text=blocks.map(b=>b.text||'').join('\n\n');
+    if(role==='assistant'&&msg.recipient&&msg.recipient!=='all'){
+      const ev=eventBase('tool',{id:`${nodeId}:tool`,name:msg.recipient,callId:msg.id||nodeId,input:text,status:'unbekannt',ts,source:src});events.push(ev);pending.push(ev);continue;
+    }
+    if(role==='tool'){
+      let found=pending.findLast(e=>!e.output&&(e.name===msg.author?.name||e.name===msg.author?.metadata?.real_author||e.name===msg.recipient));
+      if(!found)found=pending.findLast(e=>!e.output);
+      if(found){found.output=text;found.status=msg.status||'abgeschlossen';found.resultSource=src;}
+      else events.push(eventBase('tool',{id:`${nodeId}:tool-result`,name:msg.author?.name||'Tool-Ergebnis',output:text,status:'abgeschlossen',ts,source:src}));continue;
+    }
+    if(role==='user'||role==='assistant'||role==='developer'||role==='system'){
+      if(blocks.length)events.push(eventBase('message',{id:`${nodeId}:msg`,role,blocks,model:msg.metadata?.model_slug||raw.default_model_slug,ts,source:src}));
+      for(const att of (Array.isArray(msg.metadata?.attachments)?msg.metadata.attachments:[]))files.push({name:att.name||att.file_name||att.filename||'Anhang',id:att.id||att.file_id||'',node_id:nodeId});
+    }
+  }
+  // Referenzen außerhalb des aktuellen Graphzweigs bleiben im rechten Index erhalten.
+  return newConversation({id:raw.conversation_id||raw.id||envelope?.conversation_id,title:raw.title||envelope?.remote_summary?.title,formatId,formatLabel,sourcePath,createTime:raw.create_time,updateTime:raw.update_time,model:raw.default_model_slug,events,fileReferences:files,toolReferences:refs,metadata:{acquisition:envelope?.acquisition||null,integrity:envelope?.integrity||null,nodeCount:Object.keys(raw.mapping||{}).length},skipped:{hiddenThoughts}});
+}
+
+// ============================================================================
+// 03 · FORMAT ADAPTERS — nur diese Blöcke kennen ihre Herkunftsstruktur.
+//      Adaptervertrag: canRead(input), parse(input, sourcePath) => Conversation[]
+// ============================================================================
+const Adapters=[];
+function registerAdapter(adapter){Adapters.push(adapter);}
+registerAdapter({ id:'chatexporter', name:'ChatExporter RAW', extensions:['json'],
+  canRead:(input)=>input&&typeof input==='object'&&!Array.isArray(input)&&input.raw?.mapping,
+  parse:(input,path)=>[graphToConversation(input.raw,{formatId:'chatexporter',formatLabel:'ChatExporter RAW',sourcePath:path,envelope:input})] });
+registerAdapter({ id:'openai', name:'OpenAI Export', extensions:['json'],
+  canRead:(input)=>input&&typeof input==='object'&&!Array.isArray(input)&&!!input.mapping,
+  parse:(input,path)=>[graphToConversation(input,{formatId:'openai',formatLabel:'OpenAI Export',sourcePath:path})] });
+
+// ============================================================================
+// 04 · CODEX JSONL ADAPTER: event_msg + response_item sind verschiedene
+//      Sichtweisen. response_item ist führend für Chat/Tools/Reasoning.
+//      item_completed-CommandExecution wird (nach Ordinal-Zeitfenster) als
+//      Unter-Ausführung seines custom_tool_call verbunden, nicht verdoppelt.
+//      FileChange und MCP-Aufrufe werden separat normalisiert.
+//      encrypted_content wird NIEMALS als Klartext / Summary behauptet.
+// ============================================================================
+const CodexAdapter={
+ id:'codex', name:'Codex JSONL', extensions:['jsonl'],
+ canRead:input=>Array.isArray(input)&&input.some(r=>r?.type==='session_meta'||r?.type==='response_item'||r?.type==='event_msg'),
+ parse(input,path){
+   const rows=input.map((r,i)=>({...r,__row:i,__ord:Number.isFinite(Number(r.ordinal))?Number(r.ordinal):i})).sort((a,b)=>a.__ord-b.__ord);
+   const meta=rows.find(r=>r.type==='session_meta')?.payload||{};
+   const id=meta.session_id||meta.id||cleanPath(path).split('/').pop().replace(/\.jsonl$/i,'');
+   const model=rows.find(r=>r.type==='event_msg'&&r.payload?.type==='thread_settings_applied')?.payload?.thread_settings?.model||'';
+   const outcomes=new Map(),cmdEvents=[];
+   for(const r of rows){if(r.type==='response_item'&&r.payload?.type==='custom_tool_call_output'){
+      const key=r.payload.call_id;if(!outcomes.has(key))outcomes.set(key,r);
+     }if(r.type==='event_msg'&&r.payload?.type==='item_completed'&&r.payload?.item?.type==='CommandExecution')cmdEvents.push(r);
+   }
+   const events=[],matchedCmds=new Set();let reasonUnavailable=0,usedTurnStart=0;
+   const src=r=>normalSource('codex',path,r.__ord,r.payload?.id||r.payload?.item?.id||null);
+   for(const r of rows){const p=r.payload||{},ts=r.timestamp;
+     if(r.type==='response_item'){
+       if(p.type==='message'){
+         const role=p.role||'unknown'; const blocks=contentFromParts(p.content,'markdown');
+         if(blocks.length)events.push(eventBase('message',{id:`codex:${id}:${r.__ord}`,role,blocks,model,ts,source:src(r)}));
+       }else if(p.type==='reasoning'){
+         const text=(p.summary||[]).map(s=>typeof s==='string'?s:s?.text||'').filter(Boolean).join('\n\n');
+         if(text)events.push(eventBase('reasoning',{id:`codex:${id}:${r.__ord}`,title:'Reasoning-Zusammenfassung',summary:text,ts,source:src(r)}));
+         else reasonUnavailable++;
+       }else if(p.type==='custom_tool_call'){
+         const result=outcomes.get(p.call_id),endOrdinal=result?.__ord??r.__ord+1;
+         const nested=cmdEvents.filter(c=>c.__ord>=r.__ord&&c.__ord<=endOrdinal);
+         for(const cmd of nested)matchedCmds.add(cmd.__ord);
+         const rawOutput=result?.payload?.output;
+         const outTxt=Array.isArray(rawOutput)?rawOutput.map(o=>o?.text??stringify(o)).join('\n'):stringify(rawOutput||'');
+         events.push(eventBase('tool',{id:`codex:${id}:${r.__ord}`,name:p.name||'custom_tool_call',callId:p.call_id,input:stringify(p.input),output:outTxt,status:result?'abgeschlossen':p.status||'ohne Ergebnis',executions:nested.map(cmd=>({command:(cmd.payload.item.command||[]).join(' '),exitCode:cmd.payload.item.exit_code,status:cmd.payload.item.status,duration:cmd.payload.item.duration,source:src(cmd)})),ts,source:src(r)}));
+       }else if(p.type==='custom_tool_call_output'){
+         // bereits über call_id mit custom_tool_call zusammengeführt
+         const hasCall=rows.some(other=>other.type==='response_item'&&other.payload?.type==='custom_tool_call'&&other.payload.call_id===p.call_id);
+         if(!hasCall)events.push(eventBase('tool',{id:`codex:${id}:${r.__ord}`,name:'Tool-Ergebnis ohne Call',callId:p.call_id,output:stringify(p.output),status:'ohne zugehörigen Call',ts,source:src(r)}));
+       }else{
+         events.push(eventBase('unknown',{id:`codex:${id}:${r.__ord}`,title:`Unbekannter response_item-Typ: ${p.type||'?'}`,snippet:stringify(Object.fromEntries(Object.entries(p).filter(([k])=>k!=='encrypted_content'))),ts,source:src(r)}));
+       }
+     }
+     if(r.type==='event_msg'){
+       if(p.type==='task_started')events.push(eventBase('turn',{id:`codex:${id}:${r.__ord}`,title:`Turn ${++usedTurnStart}`,ts,source:src(r)}));
+       if(p.type==='task_complete'&&p.error)events.push(eventBase('notice',{id:`codex:${id}:${r.__ord}`,title:'Turn beendet (Hinweis)',summary:p.error.message||p.error.codex_error_info||stringify(p.error),level:'error',ts,source:src(r)}));
+       if(p.type==='item_completed'){
+         const item=p.item||{};
+         if(item.type==='FileChange')for(const [pathName,change] of Object.entries(item.changes||{})){
+           events.push(eventBase('file',{id:`codex:${id}:${r.__ord}:${events.length}`,title:cleanPath(pathName).split('/').pop(),path:pathName,action:change.type||'change',diff:change.unified_diff||'',content:change.content||'',ts,source:src(r)}));
+         }
+         if(item.type==='McpToolCall')events.push(eventBase('tool',{id:`codex:${id}:${r.__ord}`,name:`${item.server||'MCP'} / ${item.tool||'Tool'}`,callId:item.id,input:stringify(item.arguments),output:stringify(item.result),status:item.status||'abgeschlossen',ts,source:src(r),isMcp:true}));
+       }
+     }
+     if(r.type==='compacted')events.push(eventBase('notice',{id:`codex:${id}:${r.__ord}`,title:'Kontextkomprimierung',summary:'Compaction-Ereignis vorhanden. Die replacement_history wird nicht als zweiter Gesprächsverlauf ausgegeben.',level:'info',ts,source:src(r)}));
+   }
+   // Event-Unterausführungen ohne zugehörigen Call gehen nicht verloren.
+   for(const r of cmdEvents){if(matchedCmds.has(r.__ord))continue;const q=r.payload.item;
+     events.push(eventBase('tool',{id:`codex:${id}:${r.__ord}`,name:'CommandExecution',callId:q.id,input:(q.command||[]).join(' '),output:q.formatted_output||q.aggregated_output||q.stdout||'',status:q.status||'abgeschlossen',exitCode:q.exit_code,ts:r.timestamp,source:src(r)}));
+   }
+   events.sort((a,b)=>(a.source.ordinal??0)-(b.source.ordinal??0));
+   const create=meta.timestamp||rows[0]?.timestamp,updated=rows.at(-1)?.timestamp;
+   const fileEvents=events.filter(e=>e.kind==='file');
+   const userTexts=rows.filter(r=>r.type==='response_item'&&r.payload?.type==='message'&&r.payload.role==='user')
+     .map(r=>(r.payload.content||[]).map(x=>asText(x.text)).join('\n').trim()).filter(Boolean);
+   const userPrompt=userTexts.find(t=>!/^#\s*AGENTS\.md instructions/i.test(t)&&!/^<environment_context>/i.test(t))||userTexts[0]||'';
+   const title=(userPrompt.match(/^#\s+(.{5,110})/m)?.[1]||userPrompt.split('\n').find(l=>l.trim())||`Codex · ${strDate(create)}`).trim().slice(0,110);
+   return [newConversation({id,title,formatId:'codex',formatLabel:'Codex JSONL',sourcePath:path,createTime:create,updateTime:updated,model,events,
+     fileReferences:fileEvents.map(e=>({name:e.title,path:e.path,eventId:e.id,action:e.action})),
+     toolReferences:[],metadata:{sourceRecords:rows.length,cwd:meta.cwd||'',originator:meta.originator||'',cliVersion:meta.cli_version||''},
+     skipped:{unavailableReasonings:reasonUnavailable,commandExecutionsMerged:matchedCmds.size}})];
+ }
+};
+registerAdapter(CodexAdapter);
+function parseFileContent(text,fileName){
+ if(fileName.toLowerCase().endsWith('.jsonl')){
+   const rows=[];let errors=0;
+   for(const line of asText(text).split(/\r?\n/)){if(!line.trim())continue;try{rows.push(JSON.parse(line));}catch(_){errors++;}}
+   if(!rows.length)throw Error('Keine gültigen JSONL-Datensätze.');
+   if(errors)console.warn(`${fileName}: ${errors} ungültige JSONL-Zeilen ignoriert`);
+   return {items:[rows],badLines:errors};
+ }
+ const obj=JSON.parse(text);return {items:Array.isArray(obj)?obj:[obj],badLines:0};
+}
+function parseWithRegistry(candidate,path){for(const adapter of Adapters){if(adapter.canRead(candidate))return adapter.parse(candidate,path).filter(c=>c?.id);}return [];}
+
+// ============================================================================
+// 05 · EVENT RENDERER REGISTRY — Renderer sind formatunabhängig. Zum Ersetzen
+//      nur registerEvent(kind, fn) erneut aufrufen. Kein Adapter muss wissen,
+//      wie eine Karte aussieht. Unbekanntes bekommt einen Fallback.
+// ============================================================================
+const EventRenderers=new Map();
+function registerEvent(kind,fn){EventRenderers.set(kind,fn);}
+function element(tag,cls='',text=''){const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=asText(text);return n;}
+function renderPreviewCode(text,language='text'){
+ const item=truncate(text),wrap=document.createElement('div');wrap.appendChild(makeCode({text:item.text,language}));
+ if(item.clipped)wrap.appendChild(element('div','truncate-tip',`Nur Vorschau: ${item.text.length.toLocaleString('de-DE')} / ${item.total.toLocaleString('de-DE')} Zeichen. Das normalisierte Ereignis bleibt im Arbeitsspeicher vollständig.`));return wrap;
+}
+function withMeta(ev,node){const wrap=element('section','event');wrap.dataset.eventId=ev.id;
+ const meta=element('div','event-meta');meta.appendChild(element('span','',ev.ts?formTime(ev.ts):''));
+ if(ev.source?.ordinal!=null)meta.appendChild(element('span','event-source',`Datensatz #${ev.source.ordinal}`));
+ if(meta.textContent.trim())wrap.appendChild(meta);wrap.appendChild(node);return wrap;}
+registerEvent('message',ev=>{
+ const box=element('div',`message ${['user','assistant'].includes(ev.role)?ev.role:'system'}`);
+ const head=element('div','message-head');head.appendChild(element('span','',({user:'◉ User',assistant:'✦ Assistant',developer:'⚙ Developer',system:'⚙ System'})[ev.role]||ev.role));
+ if(ev.model&&ev.role==='assistant')head.appendChild(element('span','muted',` · ${ev.model}`));box.appendChild(head);
+ for(const b of ev.blocks)box.appendChild(renderBlock(b));return withMeta(ev,box);
+});
+registerEvent('reasoning',ev=>{
+ const d=element('details','detail-card reason-card');const s=document.createElement('summary');s.appendChild(element('span','',`◇ ${ev.title||'Reasoning'}`));s.appendChild(element('span','pill','SUMMARY'));d.appendChild(s);
+ const body=element('div','detail-body reasoning-text');body.appendChild(makeMd(ev.summary||'Keine sichtbare Zusammenfassung.'));d.appendChild(body);return withMeta(ev,d);
+});
+registerEvent('tool',ev=>{
+ const d=element('details','detail-card tool-card'),s=document.createElement('summary');s.appendChild(element('span','tool-name',`⌘ ${ev.name||'Tool'}`));
+ s.appendChild(element('span','pill',ev.status||'unbekannt'));d.appendChild(s);
+ const body=element('div','detail-body');if(ev.callId)body.appendChild(element('div','path',`Call ID: ${ev.callId}`));
+ if(ev.input){body.appendChild(element('div','small-title','Argumente / Eingabe'));body.appendChild(renderPreviewCode(ev.input,ev.input.trim().startsWith('{')?'json':'text'));}
+ if(Array.isArray(ev.executions)&&ev.executions.length){body.appendChild(element('div','small-title',`${ev.executions.length} zugeordnete CommandExecution(s)`));for(const x of ev.executions){const sum=element('div','statline');sum.appendChild(element('span','',`Exit: ${x.exitCode??'?'}`));sum.appendChild(element('span','',x.status||''));body.appendChild(sum);body.appendChild(renderPreviewCode(x.command,'powershell'));}}
+ if(ev.output){body.appendChild(element('div','small-title','Ergebnis / Ausgabe'));body.appendChild(renderPreviewCode(ev.output,ev.isMcp?'json':'text'));}
+ if(!ev.input&&!ev.output)body.appendChild(element('div','nothing','Kein anzeigbarer Inhalt in diesem Ereignis.'));
+ d.appendChild(body);return withMeta(ev,d);
+});
+registerEvent('file',ev=>{
+ const d=element('details','detail-card file-card'),s=document.createElement('summary');s.append(element('span','',`▤ ${ev.title||'Dateiänderung'}`),element('span','file-action',ev.action||'change'));d.appendChild(s);
+ const body=element('div','detail-body');body.appendChild(element('div','path',ev.path||''));
+ if(ev.diff){body.appendChild(element('div','small-title','Unified Diff'));body.appendChild(renderPreviewCode(ev.diff,'diff'));}
+ if(ev.content){body.appendChild(element('div','small-title','Dateiinhalt im Event'));body.appendChild(renderPreviewCode(ev.content,(ev.path||'').split('.').at(-1)||'text'));}
+ if(!ev.diff&&!ev.content)body.appendChild(element('p','muted','Nur Dateireferenz / Metadaten vorhanden.'));
+ d.appendChild(body);return withMeta(ev,d);
+});
+registerEvent('notice',ev=>withMeta(ev,element('div',`notice ${ev.level||'info'}`,`${ev.title||'Ereignis'}: ${ev.summary||''}`)));
+registerEvent('turn',ev=>{const node=element('div','turn-label');node.appendChild(element('span','',ev.title||'Turn'));return withMeta(ev,node);});
+registerEvent('unknown',ev=>{const node=element('div','unknown');node.appendChild(element('strong','',ev.title||'Unbekannter Eventtyp'));const d=element('details');const s=document.createElement('summary');s.textContent='Vorschau auf Quelldaten';d.appendChild(s);d.appendChild(renderPreviewCode(ev.snippet||'', 'json'));node.appendChild(d);return withMeta(ev,node);});
+function renderEvent(ev){return (EventRenderers.get(ev.kind)||EventRenderers.get('unknown'))(ev);}
+
+// ============================================================================
+// 06 · LOCAL FILE ACQUISITION, NO RAW WRITES
+// ============================================================================
+function isMonth(s){return CONFIG.monthPattern.test(s||'');}
+function sourceIsRawConversation(path){const seg=cleanPath(path).split('/');const i=seg.lastIndexOf(CONFIG.rawFolder);if(i>=0)return seg[i+1]===CONFIG.conversationsFolder&&isMonth(seg[i+2]);const j=seg.lastIndexOf(CONFIG.conversationsFolder);if(j>=0)return isMonth(seg[j+1]);return seg.some(isMonth);}
+function isAllowedFile(f,path,strict){const name=f.name.toLowerCase(),parts=cleanPath(path).split('/');if(parts.some(s=>['.staging','library','runs','metadata','exports'].includes(s)))return false;if(name==='.manifest.json')return false;
+ if(strict)return name.endsWith('.json')&&sourceIsRawConversation(path);return name.endsWith('.json')||name.endsWith('.jsonl');}
+function selectFromFileList(files){const a=Array.from(files).map(file=>({file,path:file.webkitRelativePath||file.name}));return a.filter(e=>isAllowedFile(e.file,e.path,false));}
+async function getSubdir(h,name){try{return await h.getDirectoryHandle(name,{create:false});}catch(_){return null;}}
+async function resolveStorage(handle){
+ if(isMonth(handle.name))return {handle,month:true,label:`Monat ${handle.name}`};
+ if(handle.name===CONFIG.conversationsFolder)return {handle,label:'conversations'};
+ if(handle.name===CONFIG.rawFolder){const c=await getSubdir(handle,CONFIG.conversationsFolder);if(c)return {handle:c,label:'raw_storage/conversations'};}
+ const raw=await getSubdir(handle,CONFIG.rawFolder);if(raw){const c=await getSubdir(raw,CONFIG.conversationsFolder);if(c)return {handle:c,label:'raw_storage/conversations'};}
+ const c=await getSubdir(handle,CONFIG.conversationsFolder);if(c)return {handle:c,label:'conversations'};return null;
+}
+async function listHandles(handle,onlyMonths=false,prefix='',depth=0){if(depth>64)return[];const result=[];
+ for await(const [name,child] of handle.entries()){
+   const path=prefix?`${prefix}/${name}`:name;
+   if(child.kind==='directory'){
+     if(['.staging','library','runs','metadata','exports'].includes(name))continue;
+     if(onlyMonths&&!isMonth(name))continue;
+     result.push(...await listHandles(child,false,path,depth+1));
+   }else if(child.kind==='file'){
+     const f=await child.getFile();if(isAllowedFile(f,path,false))result.push({file:f,path});
+   }
+ }return result;
+}
+async function loadDirectoryHandle(handle){setBusy(true);setStatus('Datenstruktur wird geprüft …');try{
+ const resolved=await resolveStorage(handle);let entries=[];
+ if(resolved){if(resolved.month)entries=await listHandles(resolved.handle,false,resolved.handle.name);else entries=await listHandles(resolved.handle,true,resolved.label);}
+ else entries=await listHandles(handle,false,handle.name);
+ if(!entries.length)throw Error('Keine passenden Daten gefunden.');
+ await importEntries(entries,{replace:true});STATE.latestDirectory=handle;await saveHandle(handle);
+ }catch(e){console.error(e);setStatus(e.message||'Ordner konnte nicht gelesen werden.','error');}finally{setBusy(false);}}
+async function importEntries(entries,{replace=false}={}){
+ const map=replace?new Map():new Map(STATE.conversations);let found=0,fail=0,ignored=0,badLines=0;
+ for(let i=0;i<entries.length;i++){const entry=entries[i],file=entry.file;
+   try{const {items,badLines:bad}=parseFileContent(await file.text(),file.name);badLines+=bad;
+     for(const candidate of items){const convs=parseWithRegistry(candidate,entry.path||file.name);if(!convs.length){ignored++;continue;}
+       for(const conv of convs){found++;const prev=map.get(conv.key);if(!prev||conv.updateTime>=prev.updateTime)map.set(conv.key,conv);}
+     }
+   }catch(e){console.warn(`Lesefehler ${entry.path||file.name}`,e);fail++;}
+   if((i+1)%CONFIG.yieldEvery===0||i===entries.length-1){setStatus(`${i+1} / ${entries.length} Dateien gelesen …`);await yieldUI();}
+ }
+ if(found===0)throw Error(`${entries.length} Datei(en) geprüft: keine unterstützte Conversation erkannt (${fail} Lesefehler).`);
+ STATE.conversations=map; if(replace||!STATE.conversations.has(STATE.activeKey))STATE.activeKey=[...map.values()].sort((a,b)=>b.updateTime-a.updateTime)[0]?.key||null;
+ renderList();renderActive();const duplicates=found-(replace?map.size:0);
+ setStatus(`${map.size.toLocaleString('de-DE')} ${map.size===1?'Session':'Sessions'} geladen · ${entries.length.toLocaleString('de-DE')} Dateien geprüft${badLines?` · ${badLines} fehlerhafte JSONL-Zeilen`:''}${fail?` · ${fail} Lesefehler`:''}${ignored?` · ${ignored} übersprungene Objekte`:''}`,fail?'warning':'success');
+}
+function openDB(){return new Promise((resolve,reject)=>{if(!('indexedDB'in window))return reject(Error('kein IndexedDB'));const rq=indexedDB.open(CONFIG.directoryDbName,1);rq.onupgradeneeded=()=>{if(!rq.result.objectStoreNames.contains(CONFIG.directoryStore))rq.result.createObjectStore(CONFIG.directoryStore);};rq.onsuccess=()=>resolve(rq.result);rq.onerror=()=>reject(rq.error);});}
+async function saveHandle(handle){try{const db=await openDB();await new Promise((resolve,reject)=>{const tx=db.transaction(CONFIG.directoryStore,'readwrite');tx.objectStore(CONFIG.directoryStore).put(handle,CONFIG.directoryKey);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});db.close();}catch(e){console.debug('Handle nicht gespeichert:',e);}}
+async function reconnect(){if(!('showDirectoryPicker'in window))return;try{const db=await openDB();const h=await new Promise(resolve=>{const rq=db.transaction(CONFIG.directoryStore,'readonly').objectStore(CONFIG.directoryStore).get(CONFIG.directoryKey);rq.onsuccess=()=>resolve(rq.result);rq.onerror=()=>resolve(null);});db.close();if(h&&await h.queryPermission({mode:'read'})==='granted')await loadDirectoryHandle(h);else if(h)setStatus(`Zuletzt verwendet: ${h.name} · bitte erneut freigeben.`);}catch(_){}}
+
+// ============================================================================
+// 07 · PROVIDER PRESENTATION — no provider-specific controls in the application
+// ============================================================================
+const PROVIDERS = Object.freeze({
+  chatexporter:{label:'ChatGPT',className:'chatgpt'},
+  openai:{label:'OpenAI Export',className:'openai'},
+  codex:{label:'Codex',className:'codex'},
+  opencode:{label:'OpenCode',className:'opencode'},
+  claude:{label:'Claude',className:'claude'}
+});
+const ICONS = Object.freeze({
+  calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/>',
+  turns:'<path d="M4 7h13l-3-3m3 3-3 3M20 17H7l3-3m-3 3 3 3"/>',
+  messages:'<path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H5l1.2-3.5A7.5 7.5 0 1 1 20 11.5Z"/>',
+  tool:'<path d="m14 7 3 3-8 8H6v-3l8-8ZM15 6l2-2 3 3-2 2"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  moon:'<path d="M20 15.2A8 8 0 0 1 8.8 4 8 8 0 1 0 20 15.2Z"/>'
+});
+function icon(name){return `<svg class="meta-icon" aria-hidden="true" viewBox="0 0 24 24">${ICONS[name]||''}</svg>`;}
+function providerOf(c){return PROVIDERS[c.formatId]||{label:c.formatLabel||c.formatId,className:''};}
+function turnCount(c){const marked=c.events.filter(e=>e.kind==='turn').length;return marked||c.events.filter(e=>e.kind==='message'&&e.role==='user').length;}
+function allConvs(){return Array.from(STATE.conversations.values()).sort((a,b)=>b.updateTime-a.updateTime||a.title.localeCompare(b.title,'de'));}
+function filteredConvs(){const s=STATE.search.trim().toLocaleLowerCase('de-DE');return s?allConvs().filter(c=>c.searchText.includes(s)):allConvs();}
+function shortDate(ms){return ms?new Date(ms).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'}):'—';}
+function renderList(){
+  const all=allConvs(),filtered=filteredConvs(),container=el('conv-list');container.replaceChildren();
+  const fragment=document.createDocumentFragment();
+  for(const c of filtered){
+    const p=providerOf(c),btn=element('button',`conv-item ${c.key===STATE.activeKey?'active':''}`);btn.type='button';
+    btn.setAttribute('aria-current',c.key===STATE.activeKey?'true':'false');
+    btn.innerHTML=`<span class="conv-title" title="${esc(c.title)}">${esc(c.title)}</span>
+      <span class="conv-meta">
+        <span class="meta-unit" title="Zuletzt aktualisiert">${icon('calendar')}${esc(shortDate(c.updateTime||c.createTime))}</span>
+        <span class="meta-unit" title="Turns">${icon('turns')}${turnCount(c)}</span>
+        <span class="meta-unit" title="Nachrichten">${icon('messages')}${c.messages.length}</span>
+      </span><span class="conv-badges"><span class="pill provider ${esc(p.className)}">${esc(p.label)}</span>${c.model?`<span class="pill model" title="${esc(c.model)}">${esc(c.model)}</span>`:''}</span>`;
+    btn.addEventListener('click',()=>{STATE.activeKey=c.key;renderList();renderActive();});fragment.appendChild(btn);
+  }
+  container.appendChild(fragment);
+  if(!filtered.length)container.appendChild(element('div','nothing',all.length?'Keine Treffer.':'Noch keine Conversations.'));
+  el('match-count').textContent=String(filtered.length);
+  el('total-convs').textContent=`${all.length.toLocaleString('de-DE')} Sessions`;
+  el('total-events').textContent=`${all.reduce((x,c)=>x+c.events.length,0).toLocaleString('de-DE')} Events`;
+}
+function isVisibleEvent(e){
+  const checked=id=>el(id).checked;
+  if(e.kind==='tool')return checked('filter-tools');
+  if(e.kind==='reasoning')return checked('filter-reasoning');
+  if(e.kind==='file')return checked('filter-files');
+  if(['notice','unknown','turn'].includes(e.kind))return checked('filter-notices');
+  if(e.kind==='message'&&['system','developer'].includes(e.role))return checked('filter-internal');
+  return true;
+}
+
+// Tool events are grouped in the VIEW, never merged in source data or adapters.
+// Consecutive calls form one collapsed bundle. A jump from the details panel can
+// expand its bundle and the correct tool event without regenerating the session.
+function renderToolBundle(events,seq){
+  const id=`tool-bundle-${seq}`,wrapper=element('details','tool-bundle');wrapper.id=id;
+  const summary=document.createElement('summary');
+  const names=[...new Set(events.map(e=>e.name||'Tool'))];
+  summary.append(element('span','bundle-count',String(events.length)),element('strong','',events.length===1?'Tool-Aufruf':'Tool-Aufrufe'));
+  summary.appendChild(element('span','bundle-names',names.slice(0,3).join(' · ')+(names.length>3?' …':'')));
+  const body=element('div','tool-bundle-body');wrapper.append(summary,body);
+  const children=new Map();
+  for(let i=0;i<events.length;i++){
+    const childId=`${id}-event-${i}`;
+    children.set(events[i].id,childId);
+    STATE.refs.set(events[i].id,{id:childId,groupId:id});
+  }
+  wrapper.populate=()=>{
+    if(wrapper.dataset.built)return;
+    const fragment=document.createDocumentFragment();
+    for(const event of events){
+      const node=renderEvent(event);node.id=children.get(event.id);fragment.appendChild(node);
+    }
+    body.appendChild(fragment);wrapper.dataset.built='1';
+  };
+  wrapper.addEventListener('toggle',()=>{if(wrapper.open)wrapper.populate();});
+  return wrapper;
+}
+function renderActive(){
+  const c=STATE.conversations.get(STATE.activeKey);STATE.refs.clear();
+  if(!c){
+    el('welcome').hidden=false;el('feed').hidden=true;
+    el('top-title').textContent='Conversations';el('top-sub').textContent='Lokale Gesprächsansicht';
+    el('right-content').replaceChildren(element('div','nothing','Keine Conversation ausgewählt.'));return;
+  }
+  el('welcome').hidden=true;el('feed').hidden=false;
+  el('top-title').textContent=c.title;
+  el('top-sub').textContent=`${providerOf(c).label} · ${c.events.length} Events · ${c.messages.length} Nachrichten`;
+  const feed=el('feed');feed.replaceChildren();
+  const banner=element('div','conv-banner');
+  const p=providerOf(c);
+  banner.innerHTML=`<div class="banner-title">${esc(c.title)}</div><div class="banner-meta">
+    <span class="pill provider ${esc(p.className)}">${esc(p.label)}</span>
+    <span class="meta-unit">${icon('calendar')}${esc(shortDate(c.createTime))}</span>
+    <span class="meta-unit">${icon('turns')}${turnCount(c)} Turns</span>
+    <span class="meta-unit">${icon('messages')}${c.messages.length} Nachrichten</span>
+    ${c.model?`<span class="pill model">${esc(c.model)}</span>`:''}
+    </div><div class="banner-source" title="Pfad innerhalb der Auswahl">${esc(c.sourcePath)}</div>`;
+  if(c.skipped?.unavailableReasonings)banner.appendChild(element('div','statline',`${c.skipped.unavailableReasonings} Reasoning-Einträge ohne sichtbare Zusammenfassung.`));
+  feed.appendChild(banner);
+  const visible=c.events.filter(isVisibleEvent);
+  let seq=0;
+  for(let i=0;i<visible.length;){
+    if(visible[i].kind==='tool'&&el('group-tools').checked){
+      let end=i+1;while(end<visible.length&&visible[end].kind==='tool')end++;
+      if(end-i>=2){feed.appendChild(renderToolBundle(visible.slice(i,end),seq++));i=end;continue;}
+    }
+    const ev=visible[i++],node=renderEvent(ev),id=`rendered-event-${seq++}`;
+    node.id=id;STATE.refs.set(ev.id,{id});feed.appendChild(node);
+  }
+  if(!visible.length)feed.appendChild(element('div','nothing','Unter den aktuellen Filtern sind keine Ereignisse vorhanden.'));
+  renderRight(c);el('main-scroll').scrollTop=0;
+}
+function jumpToEvent(eventId){
+  const ref=STATE.refs.get(eventId);
+  if(!ref){setStatus('Dieses Ereignis ist durch einen Ansichtsfilter ausgeblendet.','warning');return;}
+  if(ref.groupId){const bundle=document.getElementById(ref.groupId);if(bundle){bundle.open=true;bundle.populate();}}
+  const target=document.getElementById(ref.id);
+  if(!target)return;
+  const detail=target.querySelector('details');if(detail)detail.open=true;
+  target.scrollIntoView({behavior:'smooth',block:'center'});
+  target.classList.add('is-target');setTimeout(()=>target.classList.remove('is-target'),1700);
+}
+function renderRight(c){
+  const root=el('right-content');root.replaceChildren();
+  function section(title,items,build,{open=false}={}){
+    const box=element('details');box.open=open;
+    const summary=element('summary');summary.append(element('span','',title),element('span','pill',String(items.length)));box.appendChild(summary);
+    const area=element('div','right-section-content');
+    if(!items.length)area.appendChild(element('div','nothing','Keine Einträge.'));
+    for(const item of items)area.appendChild(build(item));box.appendChild(area);root.appendChild(box);
+  }
+  const tools=c.events.filter(e=>e.kind==='tool');
+  section('Tool Calls',tools,e=>{
+    const btn=element('button','ref-item');btn.type='button';
+    btn.append(element('div','ref-main',e.name||'Tool'),element('div','ref-sub',`${e.status||'—'}${e.executions?.length?` · ${e.executions.length} Ausführungen`:''}`));
+    btn.addEventListener('click',()=>jumpToEvent(e.id));return btn;
+  });
+  const refs=c.fileReferences||[];
+  section('Dateien & Änderungen',refs,ref=>{
+    const btn=element('button','ref-item');btn.type='button';
+    btn.append(element('div','ref-main',ref.name||ref.file_name||ref.filename||ref.path?.split(/[\\/]/).at(-1)||ref.id||'Dateireferenz'),
+      element('div','ref-sub',ref.path||ref.action||ref.file_id||ref.id||'Dateireferenz'));
+    if(ref.eventId)btn.addEventListener('click',()=>jumpToEvent(ref.eventId));
+    else{btn.disabled=true;btn.title='Dateiinhalte werden derzeit nicht aufgelöst.';}
+    return btn;
+  });
+  const counts=[...new Set(c.events.map(e=>e.kind))].map(kind=>({kind,count:c.events.filter(e=>e.kind===kind).length}));
+  section('Ereignistypen',counts,x=>{
+    const node=element('div','ref-item');node.append(element('span','ref-main',x.kind),element('span','ref-sub',` · ${x.count}`));return node;
+  });
+  const source=element('details');const summary=element('summary');summary.textContent='Quelle & Metadaten';source.appendChild(summary);
+  const box=element('div','source-section source-card');box.textContent=[
+    `Format: ${c.formatLabel}`,`ID: ${c.id}`,`Pfad: ${c.sourcePath}`,`Events: ${c.events.length}`,
+    c.metadata?.sourceRecords?`JSONL-Datensätze: ${c.metadata.sourceRecords}`:'',
+    c.metadata?.cliVersion?`CLI-Version: ${c.metadata.cliVersion}`:'',
+    c.metadata?.nodeCount?`Mapping-Nodes: ${c.metadata.nodeCount}`:''
+  ].filter(Boolean).join('\n');source.appendChild(box);root.appendChild(source);
+}
+function toggleRight(open){STATE.rightOpen=open;el('right-panel').classList.toggle('collapsed',!open);el('details-toggle').setAttribute('aria-expanded',String(open));el('details-toggle').classList.toggle('active',open);}
+
+// ============================================================================
+// 08 · THEME AND LOCAL USER PREFERENCES (never stored in raw_storage)
+// ============================================================================
+function loadTheme(){
+  try{const value=localStorage.getItem('conversation-viewer.theme');if(value==='dark'||value==='light')return value;}catch(_){}
+  return window.matchMedia?.('(prefers-color-scheme: light)').matches?'light':'dark';
+}
+function applyTheme(theme,save=false){
+  const selected=theme==='light'?'light':'dark';document.documentElement.setAttribute('data-theme',selected);
+  const button=el('theme-toggle');button.innerHTML=`${icon(selected==='dark'?'sun':'moon')}<span>${selected==='dark'?'Hell':'Dunkel'}</span>`;
+  button.setAttribute('aria-label',selected==='dark'?'Hellen Modus aktivieren':'Dunklen Modus aktivieren');
+  button.setAttribute('aria-pressed',String(selected==='light'));
+  document.querySelector('meta[name="color-scheme"]')?.setAttribute('content',selected);
+  if(save){try{localStorage.setItem('conversation-viewer.theme',selected);}catch(_){}}
+}
+
+// ============================================================================
+// 09 · RECURSIVE DRAG-AND-DROP DIRECTORY READER
+//      On Chromium, readEntries returns bounded batches: drain until empty.
+// ============================================================================
+function ignoreDirectory(name){return ['.staging','library','runs','metadata','exports','.git','node_modules'].includes(name);}
+function fileEntryToFile(entry){return new Promise((resolve,reject)=>entry.file(resolve,reject));}
+function nextEntryBatch(reader){return new Promise((resolve,reject)=>reader.readEntries(resolve,reject));}
+async function walkDroppedEntry(entry,prefix='',depth=0){
+  if(depth>64)throw Error('Ein abgelegter Ordner ist mehr als 64 Ebenen tief.');
+  if(!entry)return [];
+  const path=prefix?`${prefix}/${entry.name}`:entry.name;
+  if(entry.isFile){
+    const file=await fileEntryToFile(entry);
+    return isAllowedFile(file,path,false)?[{file,path}]:[];
+  }
+  if(!entry.isDirectory||ignoreDirectory(entry.name))return [];
+  const reader=entry.createReader(),out=[];
+  while(true){
+    const batch=await nextEntryBatch(reader);
+    if(!batch.length)break;
+    for(const child of batch)out.push(...await walkDroppedEntry(child,path,depth+1));
+  }
+  return out;
+}
+async function walkDroppedHandle(handle,prefix='',depth=0){
+  if(depth>64)throw Error('Ein abgelegter Ordner ist mehr als 64 Ebenen tief.');
+  if(!handle)return [];
+  const path=prefix?`${prefix}/${handle.name}`:handle.name;
+  if(handle.kind==='file'){
+    const file=await handle.getFile();return isAllowedFile(file,path,false)?[{file,path}]:[];
+  }
+  if(handle.kind!=='directory'||ignoreDirectory(handle.name))return [];
+  const out=[];
+  for await(const child of handle.values())out.push(...await walkDroppedHandle(child,path,depth+1));
+  return out;
+}
+async function gatherDroppedEntries(dt){
+  const items=Array.from(dt?.items||[]).filter(x=>x.kind==='file');
+  // Capture entries synchronously in the drop handler: the drag data store is
+  // not guaranteed to remain available after awaiting an asynchronous action.
+  const entries=items.map(item=>(item.getAsEntry||item.webkitGetAsEntry)?.call(item)).filter(Boolean);
+  if(entries.length)return (await Promise.all(entries.map(entry=>walkDroppedEntry(entry)))).flat();
+  const requests=items.map(item=>item.getAsFileSystemHandle?.()).filter(Boolean);
+  if(requests.length){const handles=await Promise.all(requests);return (await Promise.all(handles.map(h=>walkDroppedHandle(h)))).flat();}
+  return selectFromFileList(dt?.files||[]);
+}
+
+// ============================================================================
+// 10 · APP EVENTS — all import controls are provider-neutral
+// ============================================================================
+el('load-root').addEventListener('click',async()=>{
+  if(STATE.busy)return;
+  if('showDirectoryPicker'in window){
+    try{const handle=await window.showDirectoryPicker({mode:'read'});await loadDirectoryHandle(handle);return;}
+    catch(e){if(e?.name==='AbortError')return;console.debug('Directory picker fallback:',e);}
+  }
+  el('root-input').click();
+});
+el('root-input').addEventListener('change',async e=>{
+  const selected=selectFromFileList(e.target.files||[]);e.target.value='';
+  if(!selected.length){setStatus('Keine unterstützten Conversation-Dateien gefunden.','warning');return;}
+  setBusy(true);try{await importEntries(selected,{replace:true});}
+  catch(error){setStatus(error.message||'Ordner konnte nicht gelesen werden.','error');}
+  finally{setBusy(false);}
+});
+el('load-files').addEventListener('click',()=>{if(!STATE.busy)el('file-input').click();});
+el('file-input').addEventListener('change',async e=>{
+  const entries=Array.from(e.target.files||[]).map(file=>({file,path:file.name})).filter(x=>isAllowedFile(x.file,x.path,false));e.target.value='';
+  if(!entries.length)return;
+  setBusy(true);try{await importEntries(entries,{replace:false});}
+  catch(error){setStatus(error.message||'Dateien konnten nicht gelesen werden.','error');}
+  finally{setBusy(false);}
+});
+el('theme-toggle').addEventListener('click',()=>applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark',true));
+el('details-toggle').addEventListener('click',()=>toggleRight(!STATE.rightOpen));
+el('details-close').addEventListener('click',()=>toggleRight(false));
+for(const id of ['filter-tools','group-tools','filter-reasoning','filter-files','filter-notices','filter-internal'])el(id).addEventListener('change',renderActive);
+let searchTimer;
+el('search').addEventListener('input',e=>{
+  clearTimeout(searchTimer);searchTimer=setTimeout(()=>{STATE.search=e.target.value;renderList();},150);
+});
+let dragDepth=0;
+function draggingFiles(e){return Array.from(e.dataTransfer?.types||[]).includes('Files');}
+document.addEventListener('dragenter',e=>{
+  if(!draggingFiles(e))return;
+  e.preventDefault();dragDepth++;el('drop-overlay').hidden=false;
+});
+document.addEventListener('dragover',e=>{if(draggingFiles(e)){e.preventDefault();e.dataTransfer.dropEffect='copy';}});
+document.addEventListener('dragleave',e=>{
+  if(!draggingFiles(e))return;
+  dragDepth=Math.max(0,dragDepth-1);if(!dragDepth)el('drop-overlay').hidden=true;
+});
+document.addEventListener('drop',async e=>{
+  if(!draggingFiles(e))return;
+  e.preventDefault();dragDepth=0;el('drop-overlay').hidden=true;
+  if(STATE.busy)return;
+  // Start gathering immediately, while DataTransferItem is still readable.
+  const reading=gatherDroppedEntries(e.dataTransfer);
+  setBusy(true);setStatus('Ordner und Dateien werden rekursiv eingelesen …');
+  try{
+    const entries=await reading;
+    if(!entries.length){setStatus('Keine passenden JSON-/JSONL-Dateien gefunden.','warning');return;}
+    await importEntries(entries,{replace:false});
+  }catch(error){console.error(error);setStatus(error.message||'Drag-and-Drop fehlgeschlagen.','error');}
+  finally{setBusy(false);}
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&document.activeElement===el('search')){
+    el('search').value='';STATE.search='';renderList();el('search').blur();
+  }
+});
+applyTheme(loadTheme());toggleRight(true);renderList();renderActive();reconnect();
+window.ConversationViewerAPI=Object.freeze({
+  get adapters(){return Adapters.map(a=>({id:a.id,name:a.name}));},
+  get eventTypes(){return [...EventRenderers.keys()];},
+  get blockTypes(){return [...BlockRenderers.keys()];},
+  get stats(){return allConvs().map(c=>({id:c.id,provider:providerOf(c).label,format:c.formatId,messages:c.messages.length,events:c.events.length}));}
+});
+})();
+
+</script>
+</body>
+</html>

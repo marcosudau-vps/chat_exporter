@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+# Gleicher Distributionsname wie pre-5: eine Installation von pre-6 ersetzt
+# pre-5 in derselben venv sauber (kein doppeltes Paket `chatexporter`).
+name = "chatexporter-gen4"
+version = "0.0.1rc3"
+description = "Raw Session Updater über mehrere Quellen (ChatGPT, OpenCode, Codex, Claude Code)"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+# opencode/codex/claude sind fuer Python >= 3.12 geschrieben; getestet mit 3.12.10.
+requires-python = ">=3.12"
+dependencies = [
+  "playwright>=1.49",
+  "PyYAML>=6.0",
+  "python-dotenv>=1.0",
+  # Zertifikatspruefung ueber den Windows-Zertifikatsspeicher (Downloads auf frischem Windows)
+  "truststore>=0.10",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8", "Pillow>=11,<13"]
+# Zeitplanung (chatexporter task): Windows-Aufgabenplanung ueber COM
+scheduler = ["pywin32>=306; sys_platform == 'win32'"]
+# Automatische Anmeldung: verschluesselter 2FA-Speicher der Two-Factor Tools
+# (Base32-Secrets und otpauth://-URIs funktionieren auch ohne)
+autologin = ["cryptography>=42"]
+
+[project.scripts]
+# Bedienschicht: Menü (ohne Argumente) und alle Befehle
+chatexporter = "chatexporter.cli.main:main"
+# Raw Session Updater (alle aktiven Quellen)
+# (ueber die Bedienschicht, damit jeder Aufruf protokolliert wird)
+chatexporter-update = "chatexporter.cli.main:update_main"
+chatexporter-index = "chatexporter.cli.main:index_main"
+chatexporter-check = "chatexporter.cli.main:check_main"
+chatexporter-cleanup = "chatexporter.cli.main:cleanup_main"
+chatexporter-status = "chatexporter.cli.main:status_main"
+# Einzelne Quellen (eigene Kommandozeile je Provider)
+chatexporter-chatgpt = "chatexporter.cli.main:chatgpt_main"
+chatexporter-opencode = "chatexporter.cli.main:opencode_main"
+chatexporter-codex = "chatexporter.cli.main:codex_main"
+chatexporter-claude = "chatexporter.cli.main:claude_main"
+# Exporte aus dem Raw Storage (Markdown/JSON)
+chatexporter-export = "chatexporter.cli.main:export_main"
+# Konfiguration (get/set/reset/refresh/path/list)
+chatexporter-config = "chatexporter.cli.main:config_main"
+# Zeitplanung (Windows-Aufgabenplanung)
+chatexporter-task = "chatexporter.cli.main:task_main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+pythonpath = ["src"]

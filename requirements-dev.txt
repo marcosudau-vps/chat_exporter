@@ -1,0 +1,8 @@
+-r requirements.txt
+pytest>=8
+# Build des Programms (packaging/build.py, siehe docs/BUILD.md)
+pyinstaller>=6.10
+Pillow>=11,<13
+pywin32>=306; sys_platform == "win32"
+# Automatische Anmeldung: verschluesselter 2FA-Speicher
+cryptography>=42
