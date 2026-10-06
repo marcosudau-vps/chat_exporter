@@ -27,9 +27,14 @@ git clone https://github.com/marcosudau-vps/chat_exporter.git
 cd chat_exporter
 py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install --require-hashes -r requirements-ci.lock
-.\.venv\Scripts\python.exe -m pip install --no-deps --no-build-isolation .
+.\.venv\Scripts\python.exe -m pip install --no-deps --no-build-isolation -e .
 .\.venv\Scripts\chatexporter.exe --help
 ```
+
+Die bearbeitbare Installation verwendet den Quellbaum einschließlich des
+Werkzeugs für die Windows-Aufgabenplanung unter `tools/`. Sie ist der vorgesehene
+Weg für den Start aus dem Quellcode. Das fertige Windows-Programm enthält dieses
+Werkzeug bereits.
 
 Ohne eigenen Pfad verwendet das Programm `~/.chatexporter`. Für Versuche ein
 eigenes `CHATEXPORTER_HOME` setzen. Zugangsdaten gehören in eine lokale `.env`
