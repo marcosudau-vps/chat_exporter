@@ -8,7 +8,9 @@ installieren, damit die eingebauten Distributionsmetadaten übereinstimmen.
 ```powershell
 .\.venv\Scripts\python.exe packaging/ci/check.py
 .\.venv\Scripts\python.exe packaging/build.py --out _build
-.\.venv\Scripts\python.exe packaging/ci/artifacts.py --build _build --out dist/release --commit (git rev-parse HEAD)
+.\.venv\Scripts\python.exe -m build --no-isolation --outdir dist/python
+.\.venv\Scripts\python.exe -m twine check --strict dist/python/*
+.\.venv\Scripts\python.exe packaging/ci/artifacts.py --build _build --out dist/release --python-dist dist/python --commit (git rev-parse HEAD)
 ```
 
 PyInstaller erzeugt einen Ordner-Build, Inno Setup den Installer pro Benutzer.
@@ -20,9 +22,16 @@ kann weiterhin das Icon seines Terminalprofils zeigen.
 
 Die Artefaktprüfung verlangt einen Installer, richtige Paketmetadaten,
 bestandene Smoke-Tests, passende Prüfsummen und identische Iconressourcen in
-beiden EXE-Dateien. Das Bündel enthält Installer, `SHA256SUMS.txt`, `BUILD.json`
-mit Commit/Version/Abhängigkeitsnachweis und Release-Notizen.
+beiden EXE-Dateien. Außerdem müssen Wheel und Quellpaket mit richtigen
+Metadaten und Scheduler-Werkzeug enthalten sein. Das Bündel enthält Installer,
+Portable-ZIP, Wheel, Quellpaket, `ChatExporter-SHA256SUMS-<Version>.txt`,
+`ChatExporter-BUILD-<Version>.json` und `ChatExporter-RELEASE_NOTES-<Version>.md`.
+Alle Download-Dateinamen und der GitHub-Artefaktname enthalten die Version.
 
 Der manuell startbare Workflow **Windows installer** prüft den festgelegten
 SHA-256 des offiziellen Inno-Downloads. Der lokale Bau darf den Installer
 überspringen; die Artefaktprüfung akzeptiert das nicht als Release-Bündel.
+
+Für Releases die [automatische Versionsverwaltung](RELEASE.md) verwenden.
+Die feste Launcher-Datei `chatexporter.exe` innerhalb von Installation und
+Portable-ZIP wird für bestehende Verknüpfungen und Aufgaben beibehalten.

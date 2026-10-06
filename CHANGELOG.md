@@ -2,6 +2,17 @@
 
 Historie bis pre-5: `../ChatExporter_Gen4_pre-5/CHANGELOG.md`.
 
+## Unreleased
+
+- Automatische Release-Version: Patch als Standard, Minor/Major auf Auswahl;
+  erster stabiler Patch 0.0.1. Versionierter Snapshot ohne vorzeitigen Tag.
+- Vollständige Tests und Windows-/Python-Bau vor dem Release. Git-Tag erst
+  nach Upload und Abgleich aller GitHub-Anhänge; Veröffentlichung nach Abnahme.
+- Versionierte Installer, Portable-ZIP, Wheel, Quellpaket, Berichte und Prüfsummen.
+  Keine PyPI-Veröffentlichung.
+- Scheduler-Werkzeug im Python-Wheel mitliefern; normale pip-Installation kann
+  es auch ohne Entwicklungsquellbaum finden. Bestehende Quellen-/EXE-Pfade erhalten.
+
 ## 0.0.1rc3 — 2026-10-05: Windows-Icon und Desktop-Verknüpfung
 
 - Vorgegebenes `assets/IconChatExporter.png` als unveränderte Vorlage;

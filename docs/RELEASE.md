@@ -1,18 +1,70 @@
-# Release-Ablauf
+# Automatische Releases auf GitHub
 
-1. Vollständige Tests, Abhängigkeitsprüfung und Dokumentationsprüfung müssen bestehen.
-2. Version in `pyproject.toml` und `src/chatexporter/config/version.py` setzen,
-   Release-Notizen aktualisieren und Paket neu installieren.
-3. Änderungen über einen Pull Request nach `main` übernehmen.
-4. Tag `v<VERSION>` auf dem geprüften Commit anlegen und pushen. Der Tag muss
-   exakt zur Paketversion passen. Die Pipeline testet diesen Commit, baut
-   den Installer und prüft Metadaten, Icons und Prüfsummen.
-5. Die Pipeline erstellt einen **GitHub-Release-Entwurf** mit Installer,
-   `SHA256SUMS.txt` und `BUILD.json`. Kandidaten sind als Prerelease markiert.
-6. Genau diesen Installer herunterladen und Installation, Update,
-   Deinstallation sowie Icons in einer frischen Windows-Umgebung prüfen.
-7. Erst nach menschlicher Abnahme den Entwurf veröffentlichen.
+EXE, portables Programm, Python-Wheel und Quellpaket werden auf GitHub bereitgestellt.
+Es gibt keine Veröffentlichung auf PyPI. Twine wird ausschließlich zur lokalen
+Prüfung der Paketmetadaten verwendet.
 
-Die Pipeline veröffentlicht keine Releases automatisch. Ein grüner Testlauf
-allein ist keine finale Freigabe. Private Testarchive und Chatbestände gehören
-nicht in Release-Anhänge. Eine Windows-Code-Signatur wird derzeit nicht erzeugt.
+## Start und Versionsnummer
+
+```powershell
+python packaging/release.py                # Patch-Prüflauf ohne Tag
+python packaging/release.py --minor        # Minor-Prüflauf
+python packaging/release.py --major        # Major-Prüflauf
+python packaging/release.py --publish      # GitHub-Release und Tag nach Abnahme
+```
+
+`--minor` und `--major` sind gegenseitig ausgeschlossen. Die Flags lassen sich
+mit `--publish` kombinieren. In GitHub Actions dieselben Optionen über
+**Automatic release → Run workflow → bump / dry_run** auswählen.
+
+Ausgangspunkt ist der höchste stabile Versions-Tag `vMAJOR.MINOR.PATCH`.
+Kandidaten-Tags wie `v0.0.1rc3` und vorbereitete Branches zählen nicht.
+Ohne stabiles Release gilt `0.0.0`; der erste Patch-Schritt ergibt `0.0.1`.
+
+| Auswahl | Ausgehend von 1.2.9 |
+| --- | --- |
+| Standard / Patch | 1.2.10 |
+| `--minor` | 1.3.0 |
+| `--major` | 2.0.0 |
+
+Die Version wird in einem eigenständigen Release-Snapshot automatisch in
+`pyproject.toml`, `src/chatexporter/config/version.py`, README, Changelog und
+Release-Notizen gesetzt. Dieser Snapshot wird unter `release/run-<Laufnummer>`
+gespeichert und exakt dieser Commit gebaut, getestet und später getaggt.
+Die Entwicklungsfassung auf `main` wird dadurch nicht vorzeitig zum Release.
+
+## Reihenfolge und Fehlerfälle
+
+1. Version berechnen und Snapshot vorbereiten; **kein Versions-Tag**.
+2. Gesamte Windows-Testsuite einschließlich lokaler Edge-Browsertests,
+   Versions-/Dokumentationsprüfung und Abhängigkeitsprüfung ausführen.
+3. Windows-Programm und Installer bauen, 12 Smoke-Tests ausführen. Wheel und
+   Quellpaket bauen; Version, Metadaten und mitgeliefertes Scheduler-Werkzeug prüfen.
+4. Alle Artefakte mit Versionsnummern und Prüfsummen als GitHub-Build-Artefakt speichern.
+5. Ein Prüflauf (`dry_run=true`, Standard) endet hier. Er erzeugt weder Release
+   noch Versions-Tag und zählt die letzte stabile Version nicht hoch.
+6. Für einen echten Release-Start ist die menschliche Freigabe der GitHub-Umgebung
+   `release` erforderlich. Vorher genau den bereitgestellten Installer einschließlich
+   Installation, Update, Deinstallation und Icons auf frischem Windows prüfen.
+7. GitHub-Entwurf mit allen Dateien hochladen und sämtliche GitHub-Upload-Prüfsummen
+   mit den lokalen Dateien vergleichen. Als letzte Änderung den vollständig
+   geprüften Entwurf öffentlich schalten: GitHub erzeugt dabei den Versions-Tag
+   am getesteten Commit. Anschließend nur noch den Tag-Zielcommit zurücklesen.
+   Bei einem vorzeitigen Fehler bleiben der Entwurf und seine Dateien für
+   die Wiederholung erhalten. Es entsteht noch kein Versions-Tag.
+
+Misslingt ein Test, Bau oder Upload-Abgleich, entsteht kein Versions-Tag.
+Bei einem Fehler in der Finalisierung **denselben Lauf über „Re-run failed jobs“**
+fortsetzen; erfolgreich gebaute Dateien werden wiederverwendet. Kein neuer
+Versionsschritt, keine Tag-Änderung und kein Überschreiben anderer Release-Dateien.
+Externe Änderungen eines bestehenden Tags/Entwurfs werden abgelehnt.
+Release-Läufe sind serialisiert; laufende Veröffentlichungen werden nicht abgebrochen.
+
+Alle herunterladbaren Dateinamen enthalten die Version: Installer, Portable-ZIP,
+Wheel, Quellpaket, Build-Bericht, Release-Notizen, Prüfsummen und Testbericht.
+Im installierten Programm und innerhalb des Portable-ZIP bleibt der Launcher
+`chatexporter.exe`, damit vorhandene Verknüpfungen und Aufgaben stabil bleiben.
+
+Die endgültige Veröffentlichung erfolgt nach Freigabe der `release`-Umgebung.
+Eine Übernahme in den Product-Stand benötigt gesonderte menschliche Abnahme.
+Eine Windows-Code-Signatur wird nicht erzeugt.

@@ -47,11 +47,15 @@ def is_frozen() -> bool:
 
 def default_manager_script() -> Path:
     """``<Codeordner>/tools/task_scheduler/scheduler_manager.py``; im gebauten
-    Programm die mitgelieferte Kopie (``<Programm>/_internal/tools/...``)."""
+    Programm die mitgelieferte Kopie (``<Programm>/_internal/tools/...``).
+    Eine Wheel-Installation legt das Werkzeug unter ``<venv>/tools/...`` ab."""
     if is_frozen():
         return Path(getattr(sys, "_MEIPASS", Path(sys.executable).parent)) / "tools" / "task_scheduler" / \
             "scheduler_manager.py"
-    return Path(__file__).resolve().parents[3] / "tools" / "task_scheduler" / "scheduler_manager.py"
+    source = Path(__file__).resolve().parents[3] / "tools" / "task_scheduler" / "scheduler_manager.py"
+    if source.is_file():
+        return source
+    return Path(sys.prefix) / "tools" / "task_scheduler" / "scheduler_manager.py"
 
 
 #: Argumente vor dem eigentlichen Befehl: Python braucht ``-m chatexporter``,
