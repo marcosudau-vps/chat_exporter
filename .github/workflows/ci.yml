@@ -5,6 +5,10 @@ on:
   pull_request:
   workflow_dispatch:
   workflow_call:
+    inputs:
+      ref:
+        type: string
+        default: ''
 permissions:
   contents: read
 jobs:
@@ -19,6 +23,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          ref: ${{ inputs.ref || github.sha }}
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.12.10'
@@ -32,11 +37,18 @@ jobs:
           exit $LASTEXITCODE
       - name: Verify source and installed metadata
         run: python packaging/ci/check.py
+      - name: Record package version
+        id: version
+        run: |
+          $version = python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])'
+          "value=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
       - name: Full test suite including local Edge browser
         run: |
-          python -m pytest --junitxml=test-results.xml
+          $version = python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])'
+          $report = "ChatExporter-tests-$version.xml"
+          python -m pytest --junitxml="$report"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          python packaging/ci/check.py --junit test-results.xml
+          python packaging/ci/check.py --junit "$report"
           exit $LASTEXITCODE
       - name: Dependency vulnerability audit
         run: python -m pip_audit -r requirements-ci.lock --disable-pip --no-deps
@@ -44,6 +56,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: test-evidence
-          path: test-results.xml
+          name: test-evidence-${{ steps.version.outputs.value || 'failed' }}
+          path: ChatExporter-tests-*.xml
           retention-days: 14

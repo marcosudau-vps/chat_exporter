@@ -13,3 +13,5 @@ cryptography==50.0.2
 setuptools==84.0.0
 wheel==0.48.0
 pip-audit==2.10.1
+build==1.6.1
+twine==7.0.0

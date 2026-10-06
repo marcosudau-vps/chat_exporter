@@ -1,45 +1,83 @@
-name: Release draft
+name: Automatic release
 on:
-  push:
-    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Version increment
+        type: choice
+        options: [patch, minor, major]
+        default: patch
+      dry_run:
+        description: Build and verify without GitHub release or version tag
+        type: boolean
+        default: true
 permissions:
   contents: read
+concurrency:
+  group: automatic-release
+  cancel-in-progress: false
 jobs:
-  tests:
-    uses: ./.github/workflows/ci.yml
-  build:
-    needs: tests
-    uses: ./.github/workflows/build.yml
-  draft:
-    needs: build
+  prepare:
     runs-on: windows-2025
     timeout-minutes: 5
     permissions:
       contents: write
-    defaults:
-      run:
-        shell: pwsh
+    outputs:
+      version: ${{ steps.prepare.outputs.version }}
+      commit: ${{ steps.prepare.outputs.commit }}
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12.10'
+      - name: Prepare version without creating a tag
+        id: prepare
+        shell: pwsh
+        env:
+          BUMP: ${{ inputs.bump }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          SOURCE_REF: ${{ github.ref }}
+        run: |
+          if ($env:DRY_RUN -eq 'false' -and $env:SOURCE_REF -ne 'refs/heads/main') {
+            throw 'Actual releases must start from main'
+          }
+          python packaging/ci/release_flow.py prepare --bump "$env:BUMP"
+          exit $LASTEXITCODE
+  tests:
+    needs: prepare
+    uses: ./.github/workflows/ci.yml
+    with:
+      ref: ${{ needs.prepare.outputs.commit }}
+  build:
+    needs: [prepare, tests]
+    uses: ./.github/workflows/build.yml
+    with:
+      ref: ${{ needs.prepare.outputs.commit }}
+  release:
+    if: ${{ !inputs.dry_run }}
+    needs: [prepare, tests, build]
+    runs-on: windows-2025
+    timeout-minutes: 10
+    environment: release
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.prepare.outputs.commit }}
+          fetch-depth: 0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12.10'
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: windows-release
+          name: ChatExporter-${{ needs.prepare.outputs.version }}
           path: release
-      - name: Check tag and publish draft only
+      - name: Verify uploads, then create the Git tag last
+        shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          RELEASE_TAG: ${{ github.ref_name }}
-          SOURCE_COMMIT: ${{ github.sha }}
-        run: |
-          $report = Get-Content release/BUILD.json -Raw | ConvertFrom-Json
-          if ($env:RELEASE_TAG -cne ('v' + $report.version) -or $env:SOURCE_COMMIT -cne $report.commit) {
-            throw 'Tag/version/commit mismatch'
-          }
-          $installer = Join-Path release $report.installer
-          if ((Get-FileHash -LiteralPath $installer -Algorithm SHA256).Hash.ToLowerInvariant() -cne $report.installer_sha256) {
-            throw 'Installer checksum mismatch'
-          }
-          $flags = @('--draft', '--verify-tag', '--title', ('ChatExporter ' + $report.version), '--notes-file', 'release/RELEASE_NOTES.md')
-          if ($report.version -match '(a|b|rc)\d+') { $flags += '--prerelease' }
-          gh release create $env:RELEASE_TAG $installer release/SHA256SUMS.txt release/BUILD.json @flags
-          exit $LASTEXITCODE
+        run: python packaging/ci/release_flow.py finalize --bundle release

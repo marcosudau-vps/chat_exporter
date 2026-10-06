@@ -54,6 +54,9 @@ chatexporter-task = "chatexporter.cli.main:task_main"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.data-files]
+"tools/task_scheduler" = ["tools/task_scheduler/scheduler_manager.py"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"

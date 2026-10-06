@@ -45,3 +45,16 @@ Chatdaten, Browserprofile und Zugangsdaten niemals committen.
 
 [MIT](LICENSE), Copyright 2026 marcosudau-vps. Abhängigkeiten behalten ihre
 eigenen Lizenzen; siehe [Drittanbieter](docs/THIRD_PARTY.md).
+
+## Releases
+
+Installer, Portable-ZIP und Python-Wheel stehen in den GitHub-Releases bereit.
+Die [automatische Release-Verwaltung](docs/RELEASE.md) erhöht standardmäßig Patch,
+mit `--minor` Minor oder mit `--major` Major. Prüfläufe erzeugen keinen Tag.
+Versionierte Python-Wheels lassen sich unter Windows mit Python ≥ 3.12 installieren:
+
+```powershell
+python -m pip install ".\chatexporter_gen4-<Version>-py3-none-any.whl[scheduler,autologin]"
+```
+
+Der Paketquellcode wird derzeit ausschließlich auf GitHub veröffentlicht.
