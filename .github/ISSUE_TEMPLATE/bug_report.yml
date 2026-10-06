@@ -1,0 +1,24 @@
+name: Fehler melden
+description: Reproduzierbares Problem im ChatExporter
+body:
+  - type: markdown
+    attributes:
+      value: "Bitte nur erfundene Daten verwenden. Keine Zugangsdaten, Chatbestände oder Browserprofile hochladen. Sicherheitslücken privat über den Security-Tab melden."
+  - type: input
+    id: version
+    attributes:
+      label: ChatExporter- und Windows-Version
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Schritte zum Reproduzieren
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Erwartetes und beobachtetes Verhalten
+    validations:
+      required: true
