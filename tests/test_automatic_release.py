@@ -105,24 +105,32 @@ def test_failed_upload_prevents_tag_creation(release_bundle, monkeypatch, asset_
     else:
         assets[0]['digest'] = 'sha256:modified'
     monkeypatch.setattr(flow.subprocess, 'check_output', lambda *a, **k: json.dumps(assets))
-    with pytest.raises(ValueError, match='attachments|upload checksum'):
+    with pytest.raises(ValueError, match='attachments|upload checksum|attachment bytes'):
         flow.finalize(release_bundle)
     assert calls == [('rev-parse', 'HEAD')]
 
 
 def test_tag_is_last_mutation_after_all_uploads_verified(release_bundle, monkeypatch):
     calls = []
+    mutations = []
     def fake_git(*args):
         calls.append(args)
-        return 'a' * 40 if args == ('rev-parse', 'HEAD') else ''
+        if args == ('rev-parse', 'HEAD'):
+            return 'a' * 40
+        return 'a' * 40 + '\trefs/tags/v0.0.1' if mutations else ''
     monkeypatch.setattr(flow, 'git', fake_git)
     monkeypatch.setenv('GH_REPO', 'owner/project')
     release = {'apiUrl': 'https://api.github.com/repos/owner/project/releases/123', 'isDraft': True, 'targetCommitish': 'a' * 40}
-    monkeypatch.setattr(flow.subprocess, 'run', lambda *a, **k: subprocess.CompletedProcess(a, 0, json.dumps(release)))
+    def fake_run(args, **kwargs):
+        if args[:3] == ['gh', 'release', 'edit']:
+            mutations.append(args)
+        return subprocess.CompletedProcess(args, 0, json.dumps(release))
+    monkeypatch.setattr(flow.subprocess, 'run', fake_run)
     assets = [{'name': p.name, 'digest': 'sha256:' + hashlib.sha256(p.read_bytes()).hexdigest()} for p in release_bundle.rglob('*') if p.is_file()]
     monkeypatch.setattr(flow.subprocess, 'check_output', lambda *a, **k: json.dumps(assets))
     flow.finalize(release_bundle)
-    assert calls[-1] == ('push', 'origin', 'v0.0.1')
+    assert mutations == [['gh', 'release', 'edit', 'v0.0.1', '--draft=false']]
+    assert all(call[0] in ('rev-parse', 'ls-remote') for call in calls)
 
 
 def test_installed_wheel_uses_its_shipped_scheduler(tmp_path, monkeypatch):

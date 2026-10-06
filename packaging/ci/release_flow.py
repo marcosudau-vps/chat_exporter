@@ -170,6 +170,16 @@ def finalize(bundle: Path) -> None:
         raise ValueError('Invalid GitHub release id')
     assets = json.loads(subprocess.check_output(['gh', 'api', f'repos/{os.environ["GH_REPO"]}/releases/{release_id}/assets',
                                                 '-F', 'per_page=100', '--method', 'GET'], text=True))
+    actual = {asset['name']: asset.get('digest') for asset in assets}
+    if any(name not in expected or actual[name] != 'sha256:' + expected[name] for name in actual):
+        raise ValueError('Existing release has different attachment bytes')
+    missing = [path for path in files if path.name not in actual]
+    if missing:
+        if not release['isDraft']:
+            raise ValueError('Published release is missing attachments')
+        subprocess.run(['gh', 'release', 'upload', tag, *[str(path) for path in missing]], check=True)
+        assets = json.loads(subprocess.check_output(['gh', 'api', f'repos/{os.environ["GH_REPO"]}/releases/{release_id}/assets',
+                                                    '-F', 'per_page=100', '--method', 'GET'], text=True))
     verify_uploads(expected, assets)
     existing = git('ls-remote', '--tags', 'origin', 'refs/tags/' + tag, 'refs/tags/' + tag + '^{}')
     if existing:
@@ -177,13 +187,14 @@ def finalize(bundle: Path) -> None:
         target = refs.get('refs/tags/' + tag + '^{}', refs.get('refs/tags/' + tag))
         if target != manifest['commit']:
             raise ValueError('Existing tag points at another commit')
-    else:
-        git('config', 'user.name', 'github-actions[bot]')
-        git('config', 'user.email', '41898282+github-actions[bot]@users.noreply.github.com')
-        git('tag', '-a', tag, '-m', 'Verified GitHub release ' + manifest['version'])
-        git('push', 'origin', tag)
+    # Publishing the verified draft creates the GitHub tag at targetCommitish.
+    # This is the final mutation: no tag can exist from failed tests/builds/uploads.
     if release['isDraft']:
         subprocess.run(['gh', 'release', 'edit', tag, '--draft=false'], check=True)
+    published = git('ls-remote', '--tags', 'origin', 'refs/tags/' + tag, 'refs/tags/' + tag + '^{}')
+    refs = dict(line.split()[::-1] for line in published.splitlines())
+    if refs.get('refs/tags/' + tag + '^{}', refs.get('refs/tags/' + tag)) != manifest['commit']:
+        raise ValueError('Published tag does not match the tested source commit')
     print('Uploads verified; GitHub tag and release ready: ' + tag)
 
 

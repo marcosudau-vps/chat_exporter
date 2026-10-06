@@ -47,9 +47,11 @@ Die Entwicklungsfassung auf `main` wird dadurch nicht vorzeitig zum Release.
    `release` erforderlich. Vorher genau den bereitgestellten Installer einschließlich
    Installation, Update, Deinstallation und Icons auf frischem Windows prüfen.
 7. GitHub-Entwurf mit allen Dateien hochladen und sämtliche GitHub-Upload-Prüfsummen
-   mit den lokalen Dateien vergleichen. Erst danach den Versions-Tag erstellen.
-   Danach den vollständig geprüften Entwurf öffentlich schalten. Falls dieser
-   letzte API-Schritt ausfällt, bleiben Dateien und Tag für die Wiederholung erhalten.
+   mit den lokalen Dateien vergleichen. Als letzte Änderung den vollständig
+   geprüften Entwurf öffentlich schalten: GitHub erzeugt dabei den Versions-Tag
+   am getesteten Commit. Anschließend nur noch den Tag-Zielcommit zurücklesen.
+   Bei einem vorzeitigen Fehler bleiben der Entwurf und seine Dateien für
+   die Wiederholung erhalten. Es entsteht noch kein Versions-Tag.
 
 Misslingt ein Test, Bau oder Upload-Abgleich, entsteht kein Versions-Tag.
 Bei einem Fehler in der Finalisierung **denselben Lauf über „Re-run failed jobs“**
