@@ -58,7 +58,7 @@ jobs:
         env:
           SOURCE_COMMIT: ${{ inputs.ref || github.sha }}
         run: python packaging/ci/artifacts.py --build _build --out dist/release --python-dist dist/python --commit "$env:SOURCE_COMMIT"
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ChatExporter-${{ steps.version.outputs.value }}
           path: dist/release/
