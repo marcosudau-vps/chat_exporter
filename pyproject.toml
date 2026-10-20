@@ -22,7 +22,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-test = ["pytest>=8", "Pillow>=11,<13"]
+test = ["pytest>=8", "Pillow>=11,<14"]
 # Zeitplanung (chatexporter task): Windows-Aufgabenplanung ueber COM
 scheduler = ["pywin32>=306; sys_platform == 'win32'"]
 # Automatische Anmeldung: verschluesselter 2FA-Speicher der Two-Factor Tools
