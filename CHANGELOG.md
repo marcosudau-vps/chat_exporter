@@ -1,8 +1,10 @@
 # Changelog
 
-Historie bis pre-5: `../ChatExporter_Gen4_pre-5/CHANGELOG.md`.
+Die Historie vor Git bleibt im lokalen Entwicklungsarchiv erhalten.
 
 ## Unreleased
+
+## 0.0.1 — 2026-10-29
 
 - Sicherheitsaktualisierung der festgelegten Build-/Test-Abhaengigkeiten:
   certifi 2026.10.19, filelock 4.2.1, Pillow 13.0.0 und setuptools 84.1.0;

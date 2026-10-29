@@ -6,4 +6,4 @@ bewusst nicht gelesen: die einer Entwicklungsinstallation koennen veralten und g
 Bauen ins Programm.
 """
 
-__version__ = "0.0.1rc3"
+__version__ = "0.0.1"

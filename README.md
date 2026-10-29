@@ -7,7 +7,7 @@ Er aktualisiert lokale Rohdaten inkrementell, lädt referenzierte ChatGPT-Dateie
 und erzeugt Markdown- und JSON-Exporte. Bedienung über Menü oder Befehle, mit
 Einrichtung und Zeitplanung über die Windows-Aufgabenplanung.
 
-Aktueller Quellstand: **0.0.1rc3**. Das erste stabile Release **0.0.1** wird vorbereitet.
+Aktueller Quellstand: **0.0.1**. Das erste stabile Release ist auf [GitHub veröffentlicht](https://github.com/marcosudau-vps/chat_exporter/releases/tag/v0.0.1).
 Windows 10/11; das installierte Programm benötigt kein Python. Das Setup arbeitet
 pro Benutzer und erstellt Desktop- und Startmenü-Verknüpfungen mit dem App-Icon.
 
@@ -16,7 +16,7 @@ pro Benutzer und erstellt Desktop- und Startmenü-Verknüpfungen mit dem App-Ico
 - [Bekannte Einschränkungen](docs/BEKANNTE_EINSCHRAENKUNGEN.md)
 - [Architektur](docs/ARCHITEKTUR.md), [Storage](docs/STORAGE_KONZEPT.md)
 - [Tests](docs/TESTING.md), [Bauen](docs/BUILD.md), [Release-Ablauf](docs/RELEASE.md)
-- [Sicherheit](docs/SECURITY.md), [Beiträge](docs/CONTRIBUTING.md)
+- [Sicherheit](docs/SECURITY.md), [Beiträge](docs/CONTRIBUTING.md), [Git-Arbeitsweise](docs/ENTWICKLUNG.md)
 
 ## Aus dem Quellcode starten
 

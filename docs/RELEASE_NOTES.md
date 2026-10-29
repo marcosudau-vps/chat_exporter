@@ -1,4 +1,4 @@
-# ChatExporter 0.0.1rc3
+# ChatExporter 0.0.1
 
 Lokale Archivierung von ChatGPT, OpenCode,
 Codex CLI und Claude Code; inkrementelle Aktualisierung, referenzierte
@@ -15,8 +15,7 @@ Installer, Portable-ZIP, Python-Wheel und Quellpaket werden auf GitHub angeboten
 Die Versionsnummer wird automatisch im Release-Ablauf bestimmt. Vollständige
 Tests, Builds und Upload-Prüfsummen gehen dem Versions-Tag voraus. Ein Prüflauf
 veröffentlicht nichts; der Produktionsablauf benötigt menschliche Freigabe.
-Die bisherige Kennzeichnung dieses Quellstands als Kandidat bleibt bis zur
-erfolgreichen Veröffentlichung bestehen.
+Version 0.0.1 wurde am 2026-10-29 auf GitHub veröffentlicht.
 
 Bekannte Grenzen: Windows; geplante Läufe benötigen einen angemeldeten Benutzer.
 ChatGPT benötigt einen Browser. Automatische Anmeldung unterstützt E-Mail/Passwort
