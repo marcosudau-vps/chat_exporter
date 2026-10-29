@@ -46,12 +46,17 @@ def sandbox_running() -> bool:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--installer", type=Path, required=True)
+    parser.add_argument("--upgrade-from", type=Path, help="Optionaler bisheriger Installer fuer den Update-Test")
     parser.add_argument("--work", type=Path, default=None, help="Arbeitsordner (Standard: neuer Temp-Ordner)")
     parser.add_argument("--timeout-minutes", type=int, default=30)
     args = parser.parse_args(argv)
     installer = args.installer.expanduser().resolve()
     if not installer.is_file():
         print(f"Installationsprogramm nicht gefunden: {installer}")
+        return 2
+    baseline = args.upgrade_from.expanduser().resolve() if args.upgrade_from else None
+    if baseline is not None and not baseline.is_file():
+        print(f"Bisheriges Installationsprogramm nicht gefunden: {baseline}")
         return 2
     if sandbox_running():
         print("Es laeuft bereits eine Windows Sandbox – bitte zuerst schliessen.")
@@ -65,6 +70,11 @@ def main(argv: list[str] | None = None) -> int:
     for old in inp.glob("ChatExporter-Setup-*.exe"):
         old.unlink()
     shutil.copy2(installer, inp / installer.name)
+    baseline_target = inp / "upgrade_baseline.exe"
+    if baseline is not None:
+        shutil.copy2(baseline, baseline_target)
+    elif baseline_target.exists():
+        baseline_target.unlink()
     shutil.copy2(SCRIPT, inp / SCRIPT.name)
     wsb = work / "chatexporter_test.wsb"
     wsb.write_text(WSB.format(inp=inp, out=out), encoding="utf-8")

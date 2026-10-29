@@ -4,6 +4,13 @@ Historie bis pre-5: `../ChatExporter_Gen4_pre-5/CHANGELOG.md`.
 
 ## Unreleased
 
+- Sicherheitsaktualisierung der festgelegten Build-/Test-Abhaengigkeiten:
+  certifi 2026.10.19, filelock 4.2.1, Pillow 13.0.0 und setuptools 84.1.0;
+  Lockdatei mit SHA-256 neu erzeugt. GitHub-Actions auf die geprueften
+  Dependabot-Versionen aktualisiert, weiterhin mit vollstaendigen Commit-IDs.
+- Optionaler Sandbox-Update-Test mit bisherigem Installer: vorhandene
+  Konfiguration und Benutzerdaten muessen erhalten bleiben; installiertes
+  Icon wird als PNG fuer die Sichtpruefung ausgegeben.
 - Automatische Release-Version: Patch als Standard, Minor/Major auf Auswahl;
   erster stabiler Patch 0.0.1. Versionierter Snapshot ohne vorzeitigen Tag.
 - Vollständige Tests und Windows-/Python-Bau vor dem Release. Git-Tag erst

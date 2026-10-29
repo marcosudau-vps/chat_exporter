@@ -20,6 +20,12 @@ Aufruf aus dem Codeordner:
 python packaging\sandbox\run_sandbox_test.py --installer <Pfad>\ChatExporter-Setup-<Version>.exe
 ```
 
+Mit `--upgrade-from <bisheriger-Installer.exe>` zuerst die bisherige Version
+installieren und anschließend das Update prüfen. Dabei müssen die vorhandene
+Konfiguration bytegleich und eine Benutzerdatei erhalten bleiben. Ohne diese
+Option wird eine Neuinstallation geprüft. Das installierte Programm-Icon wird
+für die Sichtprüfung als `out/installed-icon.png` gespeichert.
+
 Voraussetzungen und Ablauf:
 - Das Windows-Feature „Windows-Sandbox“ ist aktiv, und keine andere Sandbox ist
   offen.
