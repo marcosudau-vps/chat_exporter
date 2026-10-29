@@ -8,6 +8,9 @@ Eigene Icons für Programm und Setup, Desktop- und Startmenü-Verknüpfungen
 sowie die App-Liste in den Windows-Einstellungen. Das Setup arbeitet pro
 Benutzer und bewahrt Daten und Konfiguration bei Update und Deinstallation.
 
+Die festgelegten Build-/Test-Abhängigkeiten enthalten die Sicherheitsupdates
+für certifi, filelock, Pillow und setuptools vom Oktober 2026.
+
 Installer, Portable-ZIP, Python-Wheel und Quellpaket werden auf GitHub angeboten.
 Die Versionsnummer wird automatisch im Release-Ablauf bestimmt. Vollständige
 Tests, Builds und Upload-Prüfsummen gehen dem Versions-Tag voraus. Ein Prüflauf

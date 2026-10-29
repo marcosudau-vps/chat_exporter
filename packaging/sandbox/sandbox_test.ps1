@@ -80,9 +80,28 @@ $py = [bool](Get-Command python.exe -ErrorAction SilentlyContinue | Where-Object
 Check $true 'Umgebung' ("Windows " + [Environment]::OSVersion.Version + ", Edge=" + $edge + ", Python=" + $py + ", Benutzer=" + $env:USERNAME)
 
 # 1. Installation (still, mit PATH-Option)
+$baseline = Join-Path $in 'upgrade_baseline.exe'
+$baselineHash = $null
+$sentinel = Join-Path $home_dir 'upgrade-preserved.txt'
+if (Test-Path $baseline) {
+    $p = Start-Process -FilePath $baseline -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/CURRENTUSER',"/LOG=$out\baseline-install.log" -WindowStyle Hidden -Wait -PassThru
+    Check ($p.ExitCode -eq 0) 'Update: bisherige Version installiert' ("Exitcode " + $p.ExitCode)
+    $r = Run '00_baseline_config' 'config path'
+    $baselineConfig = Join-Path $home_dir 'config.yaml'
+    Check ($r.code -eq 0 -and (Test-Path $baselineConfig)) 'Update: bisherige Konfiguration angelegt' ''
+    if (Test-Path $baselineConfig) { $baselineHash = (Get-FileHash $baselineConfig -Algorithm SHA256).Hash }
+    Set-Content -LiteralPath $sentinel -Value 'release-upgrade-preservation' -Encoding UTF8
+}
 $setup = Get-ChildItem $in -Filter 'ChatExporter-Setup-*.exe' | Select-Object -First 1
 $p = Start-Process -FilePath $setup.FullName -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/CURRENTUSER','/TASKS=path',"/LOG=$out\install.log" -Wait -PassThru
 Check ($p.ExitCode -eq 0) 'Installation' ("Exitcode " + $p.ExitCode + ", " + $setup.Name)
+if (Test-Path $baseline) {
+    $currentConfig = Join-Path $home_dir 'config.yaml'
+    $configPreserved = $false
+    if ($baselineHash -and (Test-Path $currentConfig)) { $configPreserved = (Get-FileHash $currentConfig -Algorithm SHA256).Hash -eq $baselineHash }
+    Check $configPreserved 'Update: Konfiguration bytegleich erhalten' ''
+    Check ((Test-Path $sentinel) -and (Get-Content -LiteralPath $sentinel -Raw).Trim() -eq 'release-upgrade-preservation') 'Update: Benutzerdaten erhalten' ''
+}
 Check (Test-Path $exe) 'Programmdatei' $exe
 $desktop = Join-Path ([Environment]::GetFolderPath('Desktop')) 'ChatExporter.lnk'
 Check (Test-Path $desktop) 'Desktop-Verknuepfung' $desktop
@@ -94,7 +113,12 @@ if (Test-Path $desktop) {
 Add-Type -AssemblyName System.Drawing
 $appIcon = [System.Drawing.Icon]::ExtractAssociatedIcon($exe)
 Check ($null -ne $appIcon) 'Programm-Icon lesbar' ''
-if ($appIcon) { $appIcon.Dispose() }
+if ($appIcon) {
+    $bitmap = $appIcon.ToBitmap()
+    $bitmap.Save((Join-Path $out 'installed-icon.png'), [System.Drawing.Imaging.ImageFormat]::Png)
+    $bitmap.Dispose()
+    $appIcon.Dispose()
+}
 $menu = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\ChatExporter'
 $links = @(Get-ChildItem $menu -ErrorAction SilentlyContinue).Count
 Check ($links -eq 4) 'Startmenue' ("$links Eintraege")

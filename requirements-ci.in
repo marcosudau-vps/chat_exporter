@@ -1,5 +1,5 @@
 -r requirements-dev.txt
-# Same runtime/build versions as the locally validated rc3 candidate.
+# Locked runtime/build versions; security refresh for the first stable release.
 playwright==1.63.0
 PyYAML==6.0.3
 python-dotenv==1.2.4
@@ -7,11 +7,14 @@ truststore==0.10.4
 pytest==9.1.1
 pyinstaller==6.22.3
 pyinstaller-hooks-contrib==2026.8
-Pillow==12.3.0
+Pillow==13.0.0
 pywin32==312
 cryptography==50.0.2
-setuptools==84.0.0
+setuptools==84.1.0
 wheel==0.48.0
 pip-audit==2.10.1
 build==1.6.1
 twine==7.0.0
+# Security fixes in transitive build/audit dependencies.
+certifi==2026.10.19
+filelock==4.2.1
