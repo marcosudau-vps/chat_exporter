@@ -1,9 +1,0 @@
-{
-  "project": "chatexporter-gen4",
-  "version": "0.0.1",
-  "base": "0.0.0",
-  "bump": "patch",
-  "run_id": "40932066680",
-  "branch": "release/run-40932066680",
-  "source_commit": "1fc5e7f5ffaab78654879612fd5dfcdc10edac2b"
-}

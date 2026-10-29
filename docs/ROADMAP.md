@@ -1,3 +1,12 @@
+# Roadmap und Phasenabschluss
+
+**Stand 2026-10-29:** Das erste stabile Release `v0.0.1` ist veröffentlicht.
+Die folgenden Abschnitte bewahren den historischen Arbeitsrahmen bis zu diesem
+Release und sind keine aktuelle Liste offener Aufgaben. Weitere Entwicklung
+folgt der [Git-Arbeitsweise](ENTWICKLUNG.md) und neuen fachlichen Aufträgen.
+
+---
+
 # Roadmap bis zur ersten Release-Version `v0.0.1`
 
 **Status: PLANUNG / Arbeitsrahmen.** Dieses Dokument beschreibt Ziele und

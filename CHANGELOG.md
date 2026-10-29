@@ -1,6 +1,8 @@
 # Changelog
 
-Historie bis pre-5: `../ChatExporter_Gen4_pre-5/CHANGELOG.md`.
+Die Historie vor Git bleibt im lokalen Entwicklungsarchiv erhalten.
+
+## Unreleased
 
 ## 0.0.1 — 2026-10-29
 
